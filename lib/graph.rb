@@ -33,8 +33,11 @@ class Graph
   end
 
   def dijkstra(source_mac, destination_mac)
+    puts "enter dijkstra!!"
     return if @graph[destination_mac].empty?
+    puts "find destination_mac"
     return if @graph[source_mac].empty?
+    puts "Do Dijkstra!!"
     route = Dijkstra.new(@graph).run(source_mac, destination_mac)
     route.reject { |each| each.is_a? Integer }
   end

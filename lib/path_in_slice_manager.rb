@@ -12,14 +12,17 @@ class PathInSliceManager < PathManager
 
   # rubocop:disable MethodLength
   def packet_in(_dpid, packet_in)
+    puts "packet_in_slice_manager!!"
     slice = Slice.find do |each|
       each.member?(packet_in.slice_source) &&
       each.member?(packet_in.slice_destination(@graph))
     end
     ports = if slice
+              puts "slice is true"
               path = maybe_create_shortest_path_in_slice(slice.name, packet_in)
               path ? [path.out_port] : []
             else
+              puts "slice if false"
               external_ports(packet_in)
             end
     packet_out(packet_in.raw_data, ports)
@@ -37,6 +40,7 @@ class PathInSliceManager < PathManager
   end
 
   def maybe_create_shortest_path_in_slice(slice_name, packet_in)
+    puts "maybe_create_shortest_path_in_slice"
     path = maybe_create_shortest_path(packet_in)
     return unless path
     path.slice = slice_name

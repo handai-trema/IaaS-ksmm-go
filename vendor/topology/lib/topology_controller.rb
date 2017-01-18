@@ -63,13 +63,14 @@ class TopologyController < Trema::Controller
       @topology.maybe_add_link Link.new(dpid, packet_in)
     elsif packet_in.data.is_a? Arp
       puts "ARP packet in"
+      puts packet_in.source_mac
       @topology.maybe_add_host(packet_in.source_mac,
                                packet_in.sender_protocol_address,
                                dpid,
                                packet_in.in_port)
     elsif packet_in.data.is_a? Pio::Arp::Request
       #puts "ARP request"
-      #puts packet_in.source_mac
+      #puts packet_in.source_mac.class
       arp_request = packet_in.data
       #puts arp_request.sender_protocol_address.to_s
       unless @arp_table.include?(arp_request.sender_protocol_address.to_s) then
@@ -114,7 +115,8 @@ class TopologyController < Trema::Controller
         end
       end
     elsif packet_in.data.is_a? Pio::Arp::Reply
-      puts "Get ARP Reply!!"
+      puts "source_mac:"+ packet_in.source_mac
+      puts "destination_mac" + packet_in.destination_mac
       #puts packet_in.data.sender_protocol_address
       arp_reply = packet_in.data
       unless @arp_table.include?(arp_reply.sender_protocol_address.to_s) then
@@ -122,6 +124,8 @@ class TopologyController < Trema::Controller
         @arp_table.store(arp_reply.sender_protocol_address.to_s,packet_in.source_mac)
       end
     elsif packet_in.data.is_a? Parser::IPv4Packet
+      puts "source_mac:"+ packet_in.source_mac
+      puts "destination_mac" + packet_in.destination_mac
       if packet_in.source_ip_address.to_s != "0.0.0.0"
         @topology.maybe_add_host(packet_in.source_mac,
                                  packet_in.source_ip_address,

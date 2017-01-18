@@ -49,19 +49,32 @@ class PathManager < Trema::Controller
 
   # This method smells of :reek:FeatureEnvy but ignores them
   def maybe_create_shortest_path(packet_in)
-    puts packet_in.source_ip_address.to_a
+    puts "create shortest path"
+    unless packet_in.data.is_a? Parser::IPv4Packet then return end
+    puts packet_in.destination_ip_address.to_a
+    destination_ip = packet_in.destination_ip_address.to_a
     source_ip = packet_in.source_ip_address.to_a
-    if source_ip[3] > 100 then
+    if destination_ip[3] > 100 then
+      #dest = Mac.new ("54:53:ed:1c:36:82")
       dest = "54:53:ed:1c:36:82"
+      puts "dest rewrited!!"
     else
       dest = packet_in.destination_mac
     end
+    if source_ip[3] > 100 then
+      #source = Mac.new ("54:53:ed:1c:36:82")
+      source = "54:53:ed:1c:36:82"
+      puts "source rewrited!!"
+    else
+      source = packet_in.source_mac
+    end
     shortest_path =
-      @graph.dijkstra(packet_in.source_mac, dest)
+      @graph.dijkstra(source, dest)
     return unless shortest_path
     if dest != packet_in.destination_mac then
-      shortest_path.push(packet_in.destination_mac)
+      #shortest_path.push(packet_in.destination_mac)
     end
+    puts shortest_path
     Path.create shortest_path, packet_in
   end
 end
