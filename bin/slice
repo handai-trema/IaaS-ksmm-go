@@ -1,0 +1,179 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.join(__dir__, '..', 'lib')
+
+require 'rubygems'
+require 'bundler'
+Bundler.setup :default
+
+require 'gli'
+require 'path_in_slice_manager'
+require 'trema'
+
+# slice command
+# rubocop:disable ModuleLength
+module SliceApp
+  extend GLI::App
+
+  def self.slice(socket_dir)
+    Trema.trema_process('RoutingSwitch', socket_dir).controller.slice
+  end
+
+  desc 'Creates a new virtual slice'
+  arg_name 'name'
+  command :add do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail 'slice name is required.' if args.empty?
+      slice(options[:socket_dir]).create(args.first)
+    end
+  end
+
+  desc 'Deletes a virtual slice'
+  arg_name 'name'
+  command :delete do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail 'slice name is required.' if args.empty?
+      slice(options[:socket_dir]).destroy(args.first)
+    end
+  end
+
+  desc 'Split virtual slices'
+  command :split do |c|
+    c.desc 'Slice names split into'
+    c.flag [:i, :into]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail '--into option is mandatory.' unless options[:into]
+      fail 'invalid arguments' if args.length != 2
+      slice(options[:socket_dir]).split(args[0], options[:into], args[1])
+    end
+  end
+
+  desc 'Join virtual slices'
+  command :join do |c|
+    c.desc 'Slice name join into'
+    c.flag [:i, :into]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail '--into option is mandatory.' unless options[:into]
+      fail 'arguments are too few.' if args.length != 2
+      slice(options[:socket_dir]).join(args, options[:into])
+    end
+  end
+
+  desc 'Lists slices'
+  command :list do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      DRb.start_service
+      slice(options[:socket_dir]).all.each do |slice|
+        puts slice
+        slice.each do |port, mac_addresses|
+          puts "  #{port.name}"
+          mac_addresses.each do |each|
+            puts "    #{each}"
+          end
+        end
+      end
+    end
+  end
+
+  desc 'Adds a port to a slice'
+  command :add_port do |c|
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      slice(options[:socket_dir]).
+        find_by!(name: options[:slice]).
+        add_port(dpid: port.fetch(:dpid), port_no: port.fetch(:port_no))
+    end
+  end
+
+  desc 'Deletes a port from a slice'
+  command :delete_port do |c|
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      slice(options[:socket_dir]).
+        find_by!(name: options[:slice]).
+        delete_port(dpid: port.fetch(:dpid), port_no: port.fetch(:port_no))
+    end
+  end
+
+  desc 'Adds a host to a slice'
+  command :add_host do |c|
+    c.desc 'MAC address'
+    c.flag [:m, :mac]
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--mac option is mandatory.' unless options[:mac]
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      slice(options[:socket_dir]).
+        find_by!(name: options[:slice]).
+        add_mac_address(options[:mac],
+                        dpid: port.fetch(:dpid), port_no: port.fetch(:port_no))
+    end
+  end
+
+  desc 'Deletes a host from a slice'
+  command :delete_host do |c|
+    c.desc 'MAC address'
+    c.flag [:m, :mac]
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--mac option is mandatory.' unless options[:mac]
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      slice(options[:socket_dir]).
+        find_by!(name: options[:slice]).
+        delete_mac_address(options[:mac],
+                           dpid: port.fetch(:dpid),
+                           port_no: port.fetch(:port_no))
+    end
+  end
+
+  exit run(ARGV)
+end
+# rubocop:enable ModuleLength

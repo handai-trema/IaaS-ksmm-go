@@ -1,0 +1,47 @@
+
+<!doctype html>
+<html>
+<head>
+  <title>Network topology</title>
+
+  <script type="text/javascript" src="vendor/topology-amn/lib/view/vis.js"></script>
+  <link href="vendor/topology-amn/lib/view/vis-network.min.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="./topology.js"></script>
+  <!-- <script type="text/javascript" src="vendor/topology-amn/lib/view/paths.js"></script> -->
+  <script type="text/javascript" src="./b.js"></script>
+
+  <style type="text/css">
+    #mynetwork {
+      width: 1000px;
+      height: 800px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="mynetwork"></div>
+
+  <script type="text/javascript">
+    for(i=0;i<paths.length;i++){
+      labelID = paths[i].label;
+      fromID = paths[i].from;
+      toID = paths[i].to;
+      edges.some(function(v, i){
+          if (v.from == fromID && v.to == toID) edges.splice(i,1);
+      });
+      edges.push({from: fromID, to: toID, color: 'red', arrows: 'to', label:labelID});
+    }
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: nodes,
+      edges: edges
+    };
+    var options = {};
+    network = new vis.Network(container, data, options);
+  </script>
+
+</body>
+</html>
