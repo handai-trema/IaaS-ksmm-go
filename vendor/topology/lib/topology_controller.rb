@@ -58,12 +58,12 @@ class TopologyController < Trema::Controller
     if packet_in.lldp?
       @topology.maybe_add_link Link.new(dpid, packet_in)
     elsif packet_in.data.is_a? Arp
-      puts "ARP packet in"
-      puts packet_in.source_mac
-      @topology.maybe_add_host(packet_in.source_mac,
-                               packet_in.sender_protocol_address,
-                               dpid,
-                               packet_in.in_port)
+      #puts "ARP packet in"
+      #puts packet_in.source_mac
+      #@topology.maybe_add_host(packet_in.source_mac,
+      #                         packet_in.sender_protocol_address,
+      #                         dpid,
+      #                         packet_in.in_port)
     elsif packet_in.data.is_a? Pio::Arp::Request
       puts @arp_table
       #puts packet_in.source_mac.class
