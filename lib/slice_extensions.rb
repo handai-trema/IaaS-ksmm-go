@@ -10,6 +10,12 @@ module SliceExtensions
     rescue KeyError
       nil
     end
+
+    def slice_destination_vm(graph,mac)
+      graph.fetch(mac).first.to_h.merge(mac: mac)
+    rescue KeyError
+      nil
+    end
   end
 
   # Extensions to Pio::Mac

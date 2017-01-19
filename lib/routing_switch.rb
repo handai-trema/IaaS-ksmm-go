@@ -32,6 +32,8 @@ class RoutingSwitch < Trema::Controller
     @options = Options.new(args)
     @path_manager = start_path_manager
     @topology = start_topology
+    mac_test = Mac.new("11:11:11:11:11:11")
+    puts mac_test.class
     logger.info 'Routing Switch started.'
   end
 

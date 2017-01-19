@@ -12,19 +12,38 @@ class PathInSliceManager < PathManager
 
   # rubocop:disable MethodLength
   def packet_in(_dpid, packet_in)
-    puts "packet_in_slice_manager!!"
+    #puts "packet_in_slice_manager!!"
+    return unless packet_in.data.is_a? Parser::IPv4Packet
+    puts "packet_in in path_in_slice_manager"
+    #puts packet_in.source_ip_address.to_s
+    #puts packet_in.source_ip_address.to_s == "192.168.0.1"
+    #サーバのIPを見かけたら、macアドレスを保存しておく
+    if packet_in.source_ip_address.to_s == "192.168.0.2" then
+      @server_mac = packet_in.source_mac
+      puts "--Server mac saved!!--"
+    end
     slice = Slice.find do |each|
-      each.member?(packet_in.slice_source) &&
-      each.member?(packet_in.slice_destination(@graph))
+      #同じスライスに属しているかを判定
+      puts each.member?(packet_in.slice_source)
+      puts each.member?(packet_in.slice_destination(@graph))
+      if packet_in.destination_ip_address.to_a[3] < 100 then
+        each.member?(packet_in.slice_source) &&
+          each.member?(packet_in.slice_destination(@graph))
+      else
+        each.member?(packet_in.slice_source) &&
+          each.member?(packet_in.slice_destination_vm(@graph,@server_mac))
+      end
     end
     ports = if slice
-              puts "slice is true"
+              #puts "slice is true"
               path = maybe_create_shortest_path_in_slice(slice.name, packet_in)
               path ? [path.out_port] : []
             else
               puts "slice if false"
               external_ports(packet_in)
             end
+    #puts "--path--"
+    #puts ports
     packet_out(packet_in.raw_data, ports)
   end
   # rubocop:enable MethodLength

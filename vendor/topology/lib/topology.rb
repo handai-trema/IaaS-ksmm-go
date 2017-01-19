@@ -72,7 +72,14 @@ class Topology
     return if @hosts.include?(host)
     @hosts << host
     mac_address, _ip_address, dpid, port_no = *host
+    puts "--dump--"
+    puts mac_address
+    puts _ip_address
+    puts dpid
+    puts port_no
     maybe_send_handler :add_host, mac_address, Port.new(dpid, port_no), self
+    puts "add_host!! mac_address is"
+    puts mac_address
   end
 
   def route(ip_source_address, ip_destination_address)
