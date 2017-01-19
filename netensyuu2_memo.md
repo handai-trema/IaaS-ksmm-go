@@ -27,8 +27,7 @@
 ### Step.2 SSHでubuntuにログインして操作
 0. `($ssh ensyuu2@192.168.10.10)`　パスワード:ensyuu2
 
-1. `docker run -itd --name hogeとか コンテナ名`
-or `docker start コンテナ名`
+1. `docker run -itd --name hogeとか コンテナ名` or `docker start コンテナ名`
 
 2. `sudo pipework br0 コンテナID コンテナに割り振るipアドレス(192.168.10.***/24)`　ただし、\*\*\*>=101
 ---
