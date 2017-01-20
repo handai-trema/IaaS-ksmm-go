@@ -57,7 +57,18 @@ class PathManager < Trema::Controller
 
   def delete_link(port_a, port_b, _topology)
     @graph.delete_link port_a, port_b
+    # パス情報の取り出し
+    #killpath = Path.find { |each| each.link?(port_a, port_b) }
+    #host_pair = []
+    #killpath.each do |each|
+    #  host_pair << each.get_packet_in
+    #end
+    #puts host_pair.to_s
     Path.find { |each| each.link?(port_a, port_b) }.each(&:destroy)
+    # パスの再作成
+    #host_pair.each do |each|
+    #  maybe_create_shortest_path(each)
+    #end
   end
 
   def add_host(mac_address, port, _topology)
@@ -84,28 +95,30 @@ class PathManager < Trema::Controller
     if destination_ip[3] > 100 then
       if @server_mac.nil? then
         dest = Mac.new ("54:53:ed:1c:36:82")
+        puts "dest rewrited by new mac!!"
       else
         dest = @server_mac
+        puts "dest rewrited by saved mac!!"
       end
       #dest = "54:53:ed:1c:36:82"
-      puts "dest rewrited!!"
     else
       dest = packet_in.destination_mac
     end
     if source_ip[3] > 100 then
       if @server_mac.nil? then
         source = Mac.new ("54:53:ed:1c:36:82")
+        puts "source rewrited by new mac!!"
       else
         source = @server_mac
+        puts "source rewrited by saved mac!!"
       end
       #source = "54:53:ed:1c:36:82"
-      puts "source rewrited!!"
     else
       source = packet_in.source_mac
     end
-    puts "dump!!!!!!!!!!"
-    puts packet_in.destination_mac
-    puts packet_in.destination_mac.class
+    #puts "dump!!!!!!!!!!"
+    #puts packet_in.destination_mac
+    #puts packet_in.destination_mac.class
     shortest_path =
       #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
       @graph.dijkstra(source, dest)
@@ -113,7 +126,8 @@ class PathManager < Trema::Controller
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
 #    end
-    puts shortest_path
+    puts "パス情報"
+    puts shortest_path.class
     Path.create shortest_path, packet_in
   end
 end

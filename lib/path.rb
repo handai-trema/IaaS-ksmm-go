@@ -36,6 +36,7 @@ class Path < Trema::Controller
   end
 
   def destroy
+    #puts caller()
     logger.info 'Deleting path: ' + @full_path.map(&:to_s).join(' -> ')
     Path.destroy self
     flow_mod_delete_to_each_switch
@@ -56,6 +57,19 @@ class Path < Trema::Controller
   def out_port
     path.last
   end
+
+  def source_mac
+    @full_path[0]
+  end
+
+  def destination_mac
+    @full_path[-1]
+  end
+
+  def get_packet_in
+    @packet_in
+  end
+
 
   private
 
@@ -79,9 +93,12 @@ class Path < Trema::Controller
 
   def flow_mod_delete_to_each_switch
     path.each_slice(2) do |in_port, out_port|
-      send_flow_mod_delete(out_port.dpid,
-                           match: exact_match(in_port.number),
-                           out_port: out_port.number)
+      ether_types = [0x0800, 0x0806]
+      ether_types.each do |ether_type|
+        send_flow_mod_delete(out_port.dpid,
+                             match: exact_match(in_port.number, ether_type),
+                             out_port: out_port.number)
+      end
     end
   end
 

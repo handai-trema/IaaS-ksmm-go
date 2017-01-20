@@ -65,13 +65,15 @@ class TopologyController < Trema::Controller
       #                         dpid,
       #                         packet_in.in_port)
     elsif packet_in.data.is_a? Pio::Arp::Request
-      puts @arp_table
+      #puts @arp_table
       #puts packet_in.source_mac.class
       arp_request = packet_in.data
       #puts arp_request.sender_protocol_address.to_s
       unless @arp_table.include?(arp_request.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_request.sender_protocol_address.to_s,packet_in.source_mac)
+        puts "ARP Table is added!!"
+        puts @arp_table
       end
       if @arp_table.include?(arp_request.target_protocol_address.to_s) then
         send_packet_out(
@@ -127,6 +129,8 @@ class TopologyController < Trema::Controller
       unless @arp_table.include?(arp_reply.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_reply.sender_protocol_address.to_s,packet_in.source_mac)
+        puts "ARP Table is added!!"
+        puts @arp_table
       end
         @topology.ports.each do |dpid,ports|
           ports.each do |port|
@@ -161,12 +165,12 @@ class TopologyController < Trema::Controller
 #        puts "host is registered by Pio::Arp::Reply"
 #      end
     elsif packet_in.data.is_a? Parser::IPv4Packet
-      puts @arp_table
-      puts "IPv4Packet is Packet_In"
-      puts "source_ip_address" + packet_in.source_ip_address.class.to_s
-      puts "source_mac:"+ packet_in.source_mac
-      puts "destination_ip_address" + packet_in.destination_ip_address.to_s
-      puts "destination_mac:" + packet_in.destination_mac
+      #puts @arp_table
+      #puts "IPv4Packet is Packet_In"
+      #puts "source_ip_address" + packet_in.source_ip_address.class.to_s
+      #puts "source_mac:"+ packet_in.source_mac
+      #puts "destination_ip_address" + packet_in.destination_ip_address.to_s
+      #puts "destination_mac:" + packet_in.destination_mac
       if packet_in.source_ip_address.to_s != "0.0.0.0"
         #仮想マシンはtopologyに追加しない
         unless packet_in.source_ip_address.to_a[3] > 100 then

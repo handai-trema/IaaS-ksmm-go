@@ -14,18 +14,18 @@ class PathInSliceManager < PathManager
   def packet_in(_dpid, packet_in)
     #puts "packet_in_slice_manager!!"
     return unless packet_in.data.is_a? Parser::IPv4Packet
-    puts "packet_in in path_in_slice_manager"
+    #puts "packet_in in path_in_slice_manager"
     #puts packet_in.source_ip_address.to_s
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
     #サーバのIPを見かけたら、macアドレスを保存しておく
-    if packet_in.source_ip_address.to_s == "192.168.0.2" then
+    if packet_in.source_ip_address.to_s == "192.168.10.10" then
       @server_mac = packet_in.source_mac
       puts "--Server mac saved!!--"
     end
     slice = Slice.find do |each|
       #同じスライスに属しているかを判定
-      puts each.member?(packet_in.slice_source)
-      puts each.member?(packet_in.slice_destination(@graph))
+      #puts each.member?(packet_in.slice_source)
+      #puts each.member?(packet_in.slice_destination(@graph))
       if packet_in.destination_ip_address.to_a[3] < 100 then
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination(@graph))
@@ -39,7 +39,7 @@ class PathInSliceManager < PathManager
               path = maybe_create_shortest_path_in_slice(slice.name, packet_in)
               path ? [path.out_port] : []
             else
-              puts "slice if false"
+              #puts "slice if false"
               external_ports(packet_in)
             end
     #puts "--path--"
@@ -59,7 +59,7 @@ class PathInSliceManager < PathManager
   end
 
   def maybe_create_shortest_path_in_slice(slice_name, packet_in)
-    puts "maybe_create_shortest_path_in_slice"
+    #puts "maybe_create_shortest_path_in_slice"
     path = maybe_create_shortest_path(packet_in)
     return unless path
     path.slice = slice_name
