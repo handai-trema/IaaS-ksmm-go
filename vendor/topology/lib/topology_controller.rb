@@ -72,8 +72,8 @@ class TopologyController < Trema::Controller
       unless @arp_table.include?(arp_request.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_request.sender_protocol_address.to_s,packet_in.source_mac)
-        puts "ARP Table is added!!"
-        puts @arp_table
+        #puts "ARP Table is added!!"
+        #puts @arp_table
       end
       if @arp_table.include?(arp_request.target_protocol_address.to_s) then
         send_packet_out(
@@ -129,8 +129,8 @@ class TopologyController < Trema::Controller
       unless @arp_table.include?(arp_reply.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_reply.sender_protocol_address.to_s,packet_in.source_mac)
-        puts "ARP Table is added!!"
-        puts @arp_table
+        #puts "ARP Table is added!!"
+        #puts @arp_table
       end
         @topology.ports.each do |dpid,ports|
           ports.each do |port|
@@ -173,7 +173,7 @@ class TopologyController < Trema::Controller
       #puts "destination_mac:" + packet_in.destination_mac
       if packet_in.source_ip_address.to_s != "0.0.0.0"
         #仮想マシンはtopologyに追加しない
-        unless packet_in.source_ip_address.to_a[3] > 100 then
+        if packet_in.source_ip_address.to_a[3] <= 100 && packet_in.source_ip_address.to_a[0] > 191 then
           @topology.maybe_add_host(packet_in.source_mac,
                                    packet_in.source_ip_address,
                                    dpid,

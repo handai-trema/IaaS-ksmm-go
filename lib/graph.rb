@@ -64,7 +64,7 @@ class Graph
     #end
     #puts "--value--"
     #@graph.each_value do |value|
-    #  puts value
+    #  puts value.to_s
     #end
     puts "enter dijkstra!!"
     puts "source mac in dijkstra is " + source_mac

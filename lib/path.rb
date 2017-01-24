@@ -105,14 +105,18 @@ class Path < Trema::Controller
   def exact_match(_in_port, _ether_type)
     #ExactMatch.new(@packet_in).tap { |match| match.in_port = in_port }
     ip_address = nil
+    source_ip = nil
     if @packet_in.data.is_a? Parser::IPv4Packet then
       ip_address = @packet_in.destination_ip_address
+      source_ip = @packet_in.source_ip_address
     elsif @packet_in.data.is_a? Arp then
       ip_address = @packet_in.target_protocol_address
+      source_ip = @packet_in.sender_protocol_address
     end
 
     if ip_address != nil then
       return Match.new({
+        source_ip_address: source_ip,
         destination_ip_address: ip_address,
         ether_type: _ether_type,
       })

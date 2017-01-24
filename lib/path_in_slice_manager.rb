@@ -14,7 +14,14 @@ class PathInSliceManager < PathManager
   def packet_in(_dpid, packet_in)
     #puts "packet_in_slice_manager!!"
     return unless packet_in.data.is_a? Parser::IPv4Packet
-    #puts "packet_in in path_in_slice_manager"
+    #puts packet_in.source_ip_address.to_a[0].class
+    return unless packet_in.source_ip_address.to_a[0] == 192
+    return if packet_in.destination_ip_address.to_a[0] == 224
+    return if packet_in.destination_ip_address.to_a[0] == 172
+    return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] > 100)
+    return if (packet_in.source_ip_address.to_s == "192.168.10.10" && packet_in.destination_ip_address.to_a[3] > 100)
+    return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_s == "192.168.10.10")
+    puts "packet_in in path_in_slice_manager"
     #puts packet_in.source_ip_address.to_s
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
     #サーバのIPを見かけたら、macアドレスを保存しておく
@@ -27,19 +34,24 @@ class PathInSliceManager < PathManager
       #puts each.member?(packet_in.slice_source)
       #puts each.member?(packet_in.slice_destination(@graph))
       if packet_in.destination_ip_address.to_a[3] < 100 then
+        puts "less 100"
+        puts each.member?(packet_in.slice_source)
+        puts each.member?(packet_in.slice_destination(@graph))
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination(@graph))
       else
+        puts "more 100"
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination_vm(@graph,@server_mac))
       end
     end
+    puts slice
     ports = if slice
-              #puts "slice is true"
+              puts "slice is true"
               path = maybe_create_shortest_path_in_slice(slice.name, packet_in)
               path ? [path.out_port] : []
             else
-              #puts "slice if false"
+              puts "slice if false"
               external_ports(packet_in)
             end
     #puts "--path--"

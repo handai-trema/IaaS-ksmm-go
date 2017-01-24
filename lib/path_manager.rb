@@ -12,7 +12,10 @@ class PathManager < Trema::Controller
 
   # This method smells of :reek:FeatureEnvy but ignores them
   def packet_in(_dpid, packet_in)
+    puts "packet_in in path_manager"
     return unless packet_in.data.is_a? Parser::IPv4Packet
+    #puts packet_in.source_ip_address.to_a[0].class
+    return unless packet_in.source_ip_address.to_a[0] > 191
     puts "packet_in in path_manager"
     #puts packet_in.source_ip_address.to_s
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
@@ -90,15 +93,19 @@ class PathManager < Trema::Controller
 #      @server_mac = packet_in.destination_mac
 #      puts "save server_mac!!"
 #    end
+    p packet_in.source_mac
+    p packet_in.destination_mac
     destination_ip = packet_in.destination_ip_address.to_a
     source_ip = packet_in.source_ip_address.to_a
     if destination_ip[3] > 100 then
       if @server_mac.nil? then
-        dest = Mac.new ("54:53:ed:1c:36:82")
+        dest = Mac.new ("00:00:00:00:00:01")
         puts "dest rewrited by new mac!!"
+        p dest
       else
         dest = @server_mac
         puts "dest rewrited by saved mac!!"
+        p dest
       end
       #dest = "54:53:ed:1c:36:82"
     else
@@ -106,7 +113,7 @@ class PathManager < Trema::Controller
     end
     if source_ip[3] > 100 then
       if @server_mac.nil? then
-        source = Mac.new ("54:53:ed:1c:36:82")
+        source = Mac.new ("00:00:00:00:00:01")
         puts "source rewrited by new mac!!"
       else
         source = @server_mac
