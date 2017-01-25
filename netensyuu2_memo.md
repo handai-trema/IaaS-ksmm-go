@@ -34,7 +34,7 @@
 ### Step.1 ubuntuのシェルで直接操作
 1. `sudo brctl addbr br0` #仮想ブリッジの立ち上げ
 
-2. #仮想ブリッジに静的なMACアドレスを割り当て  
+2. \#仮想ブリッジに静的なMACアドレスを割り当て  
  * `ifdown br0`
  * `ifconfig br0 hw ether 00:00:00:00:00:01`
  * `ifup br0`
