@@ -21,7 +21,7 @@ class Topology
 
   attr_reader :links
   attr_reader :ports
-  attr_reader :hosts  #added (2017.1.25) needed to read hosts from other class(vis.rb)
+  attr_reader :hosts_and_containers  #added (2017.1.25) needed to read hosts from other class(vis.rb)
   attr_reader :paths  #added (2017.1.25) needed to read hosts from other class(vis.rb)
   attr_reader :slices  #added (2017.1.25) needed to read hosts from other class(vis.rb)
   attr_reader :containers  #added (2017.1.25) needed to read hosts from other class(vis.rb)
@@ -78,7 +78,7 @@ class Topology
     mac_address, ip_address, dpid, port_no = *host_or_container
     return if @hosts_and_containers.include?(host_or_container) || ip_address == nil
     @hosts_and_containers << host_or_container
-    puts _ip_address.to_s + " is added in topology"
+    puts ip_address.to_s + " is added in topology"
     maybe_send_handler :add_host_or_container, mac_address, ip_address, Port.new(dpid, port_no), self
   end
 

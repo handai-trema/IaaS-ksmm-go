@@ -10,8 +10,9 @@ module View
 
     # rubocop:disable AbcSize
     def update(_event, _changed, topology)
-      host_without_container = topology.hosts.each_with_object({}) do |each, tmp|
-        unless check_container(each, topology.containers)
+      i = 0
+      host_without_container = topology.hosts_and_containers.each_with_object({}) do |each, tmp|
+        unless check_container(each, topology.containers) then
           tmp[i] = each
           i += 1
         end
@@ -22,11 +23,12 @@ module View
       i = 0
       links = topology.links.each_with_object({}) do |each, tmp|
         next unless nodes[each.dpid_a] && nodes[each.dpid_b]
-        tmp[i] = { "id"=> 10000+i, "from"=> each.dpid_a, "to"=> each.dpid_b }
-        i += 1
+          tmp[i] = { "id"=> 10000+i, "from"=> each.dpid_a, "to"=> each.dpid_b }
+          i += 1
       end
       i = 0
-      hosts = host_without_container.each_with_object({}) do |each, tmp|
+#      hosts = host_without_container.each_with_object({}) do |each, tmp|
+      hosts = topology.hosts_and_containers.each_with_object({}) do |each, tmp|
         tmp[i] = { "id"=> 100+i, "label"=> each[0].to_s }
         i += 1
       end
@@ -64,10 +66,11 @@ module View
     end
 
     def check_container(mac_address, containers)
-      containers.each
-        return true if each[0].to_s == mac_address.to_s
+      result = false
+      for container in containers do
+        result = true if each[0].to_s == mac_address.to_s
       end
-      return false
+      return result
     end
 
   end

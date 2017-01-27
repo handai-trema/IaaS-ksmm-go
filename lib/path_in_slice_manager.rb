@@ -71,7 +71,7 @@ class PathInSliceManager < PathManager
 ############################################
 #	         コンテナの場合
 #    container = mac_address, server_mac_address
-    maybe_send_handler :add_container, container#トポロジ追加用
+#    maybe_send_handler :add_container, container#トポロジ追加用
 ############################################
   end
 
