@@ -4,40 +4,57 @@ require 'erb'
 module View
   # Topology controller's GUI (vis.js).
   class Vis
-    def initialize(output = 'topology.js')
+    def initialize(output = './tmp/topology.json')
       @output = output
-      delete_jsfile()
-    end
-    def delete_jsfile()
-      File.delete "./output/path.js" if File.exist?("./output/path.js")
-      fhtml = open("./output/path.js", "w")
-      fhtml.write("paths = [];\n")
     end
 
     # rubocop:disable AbcSize
     def update(_event, _changed, topology)
-      outtext = Array.new
       nodes = topology.switches.each_with_object({}) do |each, tmp|
-        outtext.push(sprintf("nodes.push({id: %d, label: '%#x', image:DIR+'switch.jpg', shape: 'image'});", each.to_i, each.to_hex))
+        tmp[each] = { "id"=> each, "label"=> each.to_hex }
       end
-      topology.links.each do |each|
-        # next unless nodes[each.dpid_a] && nodes[each.dpid_b]
-        outtext.push(sprintf("edges.push({from: %d, to: %d});", each.dpid_a.to_i, each.dpid_b.to_i))
+      i = 0
+      links = topology.links.each_with_object({}) do |each, tmp|
+        next unless nodes[each.dpid_a] && nodes[each.dpid_b]
+        tmp[i] = { "id"=> 10000+i, "from"=> each.dpid_a, "to"=> each.dpid_b }
+        i += 1
       end
-      #added (2016.11.9) add ellipse with ip_address and link between host and switch
-      topology.hosts.each do |each|  #for all host
-        outtext.push(sprintf("nodes.push({id: %d, label: '%s', image:DIR+'host.png', shape: 'image'});", each[0].to_i, each[0].to_s))#add ellipse with ip_address(each[1])
-        outtext.push(sprintf("edges.push({from: %d, to: %d});", each[0].to_i, each[2].to_i))#add link between host and switch(each[2]:switch dpid)
+      i = 0
+      hosts = topology.hosts.each_with_object({}) do |each, tmp|
+        tmp[i] = { "id"=> 100+i, "label"=> each[0].to_s }
+        i += 1
       end
-      @topology = outtext
-      File.delete "./output/" + @output if File.exist?("./output/" + @output)
-      fhtml = open("./output/" + @output, "w")
-      fhtml.write(ERB.new(File.open('./output/template/topology_template.js').read).result(binding))
+      i = 0
+      h_links = topology.hosts.each_with_object({}) do |each, tmp|
+#        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
+         tmp[nodes.length+i] = { "id"=> 10000+nodes.length+i, "from"=> each[2], "to"=> 100+i }
+        i += 1
+      end
+      i = 0
+      containers = topology.containers.each_with_object({}) do |each, tmp|
+        tmp[i] = { "id"=> 1000+i, "label"=> each[0].to_s }
+        i += 1
+      end
+      i = 0
+      c_links = topology.containers.each_with_object({}) do |each, tmp|
+#        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
+         server_id = hosts.each_with_object({}) do |server, tmp|
+           tmp = server["id"] if server["label"] == each[2].to_s
+         end
+         tmp[nodes.length+hosts.length+i] = { "id"=> 10000+nodes.length+hosts.length+i, "from"=> server_id, "to"=> 1000+i }
+        i += 1
+      end
+      open(@output, "w") do |io|
+        JSON.dump([ "nodes"=> nodes.values, "hosts"=> hosts.values, 
+                    "containers"=> containers.values, 
+                    "links"=> (links.merge(h_links)).merge(c_links).values, 
+                    "paths"=>topology.paths, "slices"=>topology.slices], io)
+      end
     end
     # rubocop:enable AbcSize
-
+#slices
     def to_s
-      "vis.js mode, output = #{@output}"
+      "vizJs mode, output = #{@output}"
     end
   end
 end

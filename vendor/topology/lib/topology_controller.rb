@@ -172,13 +172,27 @@ class TopologyController < Trema::Controller
       #puts "destination_ip_address" + packet_in.destination_ip_address.to_s
       #puts "destination_mac:" + packet_in.destination_mac
       if packet_in.source_ip_address.to_s != "0.0.0.0"
-        #仮想マシンはtopologyに追加しない
+        #ホストをトポロジに追加
         if packet_in.source_ip_address.to_a[3] <= 100 && packet_in.source_ip_address.to_a[0] > 191 then
+          if packet_in.source_ip_address.to_s == "192.168.10.10" then
+            @server_mac1 = packet_in.source_mac
+            puts "--Server mac saved!!--"
+          end
+          if packet_in.source_ip_address.to_s == "192.168.10.20" then
+            @server_mac2 = packet_in.source_mac
+            puts "--Server mac saved!!--"
+          end
           @topology.maybe_add_host(packet_in.source_mac,
                                    packet_in.source_ip_address,
                                    dpid,
                                    packet_in.in_port)
           #puts "host is registered by Parser::IPv4Packet"
+        else #コンテナをトポロジに追加
+　　　　　　　　　　container_server_mac = @server_mac1 if packet_in.source_ip_address.to_a[3] < 200
+　　　　　　　　　　container_server_mac = @server_mac2 unless packet_in.source_ip_address.to_a[3] < 200
+          @topology.maybe_add_container(packet_in.source_mac,
+                                        packet_in.source_ip_address,
+                                        container_server_mac)
         end
       end
     else
@@ -191,6 +205,18 @@ class TopologyController < Trema::Controller
     @topology.ports.each do |dpid, ports|
       send_lldp dpid, ports
     end
+  end
+
+  def add_path(path)
+    @topology.maybe_add_path(path)
+  end
+
+  def del_path(path)
+    @topology.maybe_delete_path(path)
+  end
+
+  def update_slice(slice)
+    @topology.maybe_update_slice(slice)
   end
 
   private

@@ -4,7 +4,13 @@ require 'trema'
 
 # L2 routing path manager
 class PathManager < Trema::Controller
+
+  def add_observer(observer)
+    @observers << observer
+  end
+
   def start
+    @observers = []
     @graph = Graph.new
     @server_mac = nil
     logger.info 'Path Manager started.'
@@ -12,7 +18,7 @@ class PathManager < Trema::Controller
 
   # This method smells of :reek:FeatureEnvy but ignores them
   def packet_in(_dpid, packet_in)
-    puts "packet_in in path_manager"
+    #puts "packet_in in path_manager"
     return unless packet_in.data.is_a? Parser::IPv4Packet
     #puts packet_in.source_ip_address.to_a[0].class
     return unless packet_in.source_ip_address.to_a[0] > 191
@@ -60,6 +66,7 @@ class PathManager < Trema::Controller
 
   def delete_link(port_a, port_b, _topology)
     @graph.delete_link port_a, port_b
+    del_path = Path.find { |each| each.link?(port_a, port_b) }
     # パス情報の取り出し
     #killpath = Path.find { |each| each.link?(port_a, port_b) }
     #host_pair = []
@@ -72,6 +79,7 @@ class PathManager < Trema::Controller
     #host_pair.each do |each|
     #  maybe_create_shortest_path(each)
     #end
+    maybe_send_handler :del_path, del_path#可視化用
   end
 
   def add_host(mac_address, port, _topology)
@@ -130,11 +138,18 @@ class PathManager < Trema::Controller
       #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
       @graph.dijkstra(source, dest)
     return unless shortest_path
+    maybe_send_handler :add_path, shortest_path#可視化用
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
 #    end
     puts "パス情報"
     puts shortest_path.class
     Path.create shortest_path, packet_in
+  end
+
+  def maybe_send_handler(method, *args)
+    @observers.each do |each|
+      each.__send__ method, *args if each.respond_to?(method)
+    end
   end
 end

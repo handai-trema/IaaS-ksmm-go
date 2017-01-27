@@ -28,10 +28,17 @@ class RoutingSwitch < Trema::Controller
     Slice
   end
 
+#  def update_slice
+#ここで可視化のためにトポロジに追加する、以前はbin/sliceにこのメソッドを呼ぶ記述をしていたが、routing_switchなどでスライスの作成を自動化する場合はその部分で呼ぶ必要がある
+#    @topology.update_slice(Slice.all)
+#  end
+
   def start(args)
     @options = Options.new(args)
     @path_manager = start_path_manager
     @topology = start_topology
+    @path_manager.add_observer @topology
+#ここでアドミンをスライスを追加？
     mac_test = Mac.new("11:11:11:11:11:11")
     puts mac_test.class
     logger.info 'Routing Switch started.'
@@ -43,6 +50,7 @@ class RoutingSwitch < Trema::Controller
   delegate :port_modify, to: :@topology
 
   def packet_in(dpid, packet_in)
+#ここでユーザをスライスを追加？
     @topology.packet_in(dpid, packet_in)
     @path_manager.packet_in(dpid, packet_in) unless packet_in.lldp?
   end

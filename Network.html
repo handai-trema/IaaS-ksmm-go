@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Network</title>
+  <script type="text/javascript" src="./javascript/jquery.min.js"></script>
+  <script src="./javascript/vis.min.js"></script>
+  <link href="./javascript/vis.min.css" rel="stylesheet" type="text/css" />
+  
+
+<style type="text/css">
+ #mynetwork {
+   width: 600px;
+   height: 400px;
+   border: 1px solid lightgray;
+ }
+</style>
+
+</head>
+
+<body>
+<p>
+ ホストを選択<br>
+１つ選択：選択されたホストが送信元のパスを表示<br>
+2つ選択：選択されたホスト間のパスを表示
+</p>
+
+<div id="radiobutton"></div>
+<div id="output"></div>
+
+<div id="mynetwork"></div>
+<pre id="eventSpan"></pre>
+
+<!-- 単純に分離しただけなのでid="mynetwork"じゃないとこのスクリプト動かないです -->
+<script type="text/javascript" src="./javascript/Draw_network.js"></script>
+
+</body>
+</html>

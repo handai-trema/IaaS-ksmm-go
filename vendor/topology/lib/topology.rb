@@ -21,13 +21,19 @@ class Topology
 
   attr_reader :links
   attr_reader :ports
-  attr_reader :hosts  #added (2016.11.9) needed to read hosts from other class(graphviz.rb)
+  attr_reader :hosts  #added (2017.1.25) needed to read hosts from other class(vis.rb)
+  attr_reader :paths  #added (2017.1.25) needed to read hosts from other class(vis.rb)
+  attr_reader :slices  #added (2017.1.25) needed to read hosts from other class(vis.rb)
+  attr_reader :containers  #added (2017.1.25) needed to read hosts from other class(vis.rb)
 
   def initialize
     @observers = []
     @ports = Hash.new { [].freeze }
     @links = []
     @hosts = []
+    @paths = []
+    @slices = []
+    @containers = []
   end
 
   def add_observer(observer)
@@ -69,12 +75,50 @@ class Topology
   end
 
   def maybe_add_host(*host)
-    return if @hosts.include?(host)
+    mac_address, ip_address, dpid, port_no = *host
+    return if @hosts.include?(host) || ip_address == nil
     @hosts << host
-    mac_address, _ip_address, dpid, port_no = *host
     puts _ip_address.to_s + " is added in topology"
     maybe_send_handler :add_host, mac_address, Port.new(dpid, port_no), self
   end
+#追加
+  def maybe_add_container(*container)
+    container_mac_address, container_ip_address, server_mac = *container
+    return if @containers.include?(container) || container_ip_address == nil
+    @containers << container
+    puts _ip_address.to_s + " is added in topology"
+    maybe_send_handler :add_container, mac_address, Port.new(dpid, port_no), self
+  end
+
+  def maybe_add_path(shortest_path)
+    temp = Array.new
+    temp << shortest_path[0].to_s
+    shortest_path[1..-2].each_slice(2) do |in_port, out_port|
+      temp << out_port.dpid
+    end
+    temp << shortest_path.last.to_s
+    unless @paths.include?(temp)
+      @paths << temp
+      maybe_send_handler :add_path, shortest_path, self
+    end
+  end
+
+  def maybe_delete_path(delete_path)
+    temp = Array.new
+    temp << delete_path[0].to_s
+    delete_path[1..-2].each_slice(2) do |in_port, out_port|
+      temp << out_port.dpid
+    end
+    temp << delete_path.last.to_s
+    @paths.delete(temp)
+    maybe_send_handler :del_path, delete_path, self
+  end
+
+  def maybe_update_slice(slice)
+    @slices = slice
+    maybe_send_handler :maybe_update_slice, slice, self
+  end
+#追加ここまで
 
   def route(ip_source_address, ip_destination_address)
     @graph.route(ip_source_address, ip_destination_address)
