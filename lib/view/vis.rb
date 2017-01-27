@@ -27,8 +27,7 @@ module View
           i += 1
       end
       i = 0
-#      hosts = host_without_container.each_with_object({}) do |each, tmp|
-      hosts = topology.hosts_and_containers.each_with_object({}) do |each, tmp|
+      hosts = host_without_container.each_with_object({}) do |each, tmp|
         tmp[i] = { "id"=> 100+i, "label"=> each[0].to_s }
         i += 1
       end
