@@ -10,6 +10,12 @@ module View
 
     # rubocop:disable AbcSize
     def update(_event, _changed, topology)
+      host_without_container = topology.hosts.each_with_object({}) do |each, tmp|
+        unless check_container(each, topology.containers)
+          tmp[i] = each
+          i += 1
+        end
+      end
       nodes = topology.switches.each_with_object({}) do |each, tmp|
         tmp[each] = { "id"=> each, "label"=> each.to_hex }
       end
@@ -20,12 +26,12 @@ module View
         i += 1
       end
       i = 0
-      hosts = topology.hosts.each_with_object({}) do |each, tmp|
+      hosts = host_without_container.each_with_object({}) do |each, tmp|
         tmp[i] = { "id"=> 100+i, "label"=> each[0].to_s }
         i += 1
       end
       i = 0
-      h_links = topology.hosts.each_with_object({}) do |each, tmp|
+      h_links = host_without_container.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
          tmp[nodes.length+i] = { "id"=> 10000+nodes.length+i, "from"=> each[2], "to"=> 100+i }
         i += 1
@@ -39,7 +45,7 @@ module View
       c_links = topology.containers.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
          server_id = hosts.each_with_object({}) do |server, tmp|
-           tmp = server["id"] if server["label"] == each[2].to_s
+           tmp = server["id"] if server["label"] == each[1].to_s
          end
          tmp[nodes.length+hosts.length+i] = { "id"=> 10000+nodes.length+hosts.length+i, "from"=> server_id, "to"=> 1000+i }
         i += 1
@@ -56,5 +62,13 @@ module View
     def to_s
       "vizJs mode, output = #{@output}"
     end
+
+    def check_container(mac_address, containers)
+      containers.each
+        return true if each[0].to_s == mac_address.to_s
+      end
+      return false
+    end
+
   end
 end
