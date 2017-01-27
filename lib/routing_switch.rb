@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift File.join(__dir__, '../vendor/topology/lib')
+#$LOAD_PATH.unshift File.join(__dir__, '../vendor/topology/lib')
 
 require 'active_support/core_ext/module/delegation'
 require 'optparse'
