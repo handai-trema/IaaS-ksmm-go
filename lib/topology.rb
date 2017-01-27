@@ -30,7 +30,7 @@ class Topology
     @observers = []
     @ports = Hash.new { [].freeze }
     @links = []
-    @hosts = []
+    @hosts_and_containers = []
     @paths = []
     @slices = []
     @containers = []
@@ -74,10 +74,10 @@ class Topology
     maybe_send_handler :add_link, port_a, port_b, self
   end
 
-  def maybe_add_host_or_container(*host)
-    mac_address, ip_address, dpid, port_no = *host
-    return if @hosts.include?(host) || ip_address == nil
-    @hosts << host
+  def maybe_add_host_or_container(*host_or_container)
+    mac_address, ip_address, dpid, port_no = *host_or_container
+    return if @hosts_and_containers.include?(host_or_container) || ip_address == nil
+    @hosts_and_containers << host_or_container
     puts _ip_address.to_s + " is added in topology"
     maybe_send_handler :add_host_or_container, mac_address, ip_address, Port.new(dpid, port_no), self
   end
