@@ -1,5 +1,5 @@
 # Finds shortest path.
-class Dijkstra
+class DijkstraOpt
   # Graph node
   class Node
     attr_reader :name
@@ -14,12 +14,13 @@ class Dijkstra
       @prev = nil
     end
 
-    def maybe_update_distance_and_prev(min_node)
-      new_distance = min_node.distance + 1
+    def maybe_update_distance_and_prev(min_node,load_num)
+      return if min_node.name === Fixnum
+      new_distance = min_node.distance + 1 + load_num
       return if new_distance > @distance
       @distance = new_distance
       @prev = min_node
-      #puts "#{@prev.name} -> #{name} : #{@distance}"
+      puts "#{@prev.name} -> #{name} : #{@distance}"
       #puts "name is #{@name}"
       #puts "name class is #{@name.class}"
       #puts "prev is #{@prev}"
@@ -54,8 +55,9 @@ class Dijkstra
     end
   end
 
-  def initialize(graph)
+  def initialize(graph,table)
     @all = graph.map { |name, neighbors| Node.new(name, neighbors) }
+    @load_table = table
     @unvisited = SortedArray.new(@all)
   end
 
@@ -69,9 +71,19 @@ class Dijkstra
   private
 
   def maybe_update_neighbors_of(min_node)
-    #puts "#{min_node.name} neighbors is #{min_node.neighbors}"
+    load_num = 0
+    case min_node.name
+    when Topology::Port
+      #load_num = @load_table[min_node.name.dpid]
+    when Fixnum
+      load_num = @load_table[min_node.name]
+    when Pio::Mac
+    else
+      puts "Unknown class : #{min_node.name.class}"
+    end
+
     min_node.neighbors.each do |each|
-      find(each, @all).maybe_update_distance_and_prev(min_node)
+      find(each, @all).maybe_update_distance_and_prev(min_node,load_num)
     end
   end
 

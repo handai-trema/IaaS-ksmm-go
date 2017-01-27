@@ -22,6 +22,12 @@ class PathInSliceManager < PathManager
     return if (packet_in.source_ip_address.to_s == "192.168.10.10" && packet_in.destination_ip_address.to_a[3] > 100)
     return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_s == "192.168.10.10")
     puts "packet_in in path_in_slice_manager"
+    puts "dpid : #{packet_in.dpid}"
+    puts "in_port : #{packet_in.in_port}"
+    puts "source_mac : #{packet_in.source_mac}"
+    puts "destination_mac : #{packet_in.destination_mac}"
+    puts "source_ip_address : #{packet_in.source_ip_address.to_s}"
+    puts "destination_ip_address : #{packet_in.destination_ip_address.to_s}"
     #puts packet_in.source_ip_address.to_s
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
     #サーバのIPを見かけたら、macアドレスを保存しておく
@@ -41,8 +47,14 @@ class PathInSliceManager < PathManager
           each.member?(packet_in.slice_destination(@graph))
       else
         puts "more 100"
+        dest_mac = nil
+        if @server_mac.nil? then 
+          dest_mac = Mac.new("00:00:00:00:00:01")
+        else
+          dest_mac = @server_mac
+        end
         each.member?(packet_in.slice_source) &&
-          each.member?(packet_in.slice_destination_vm(@graph,@server_mac))
+          each.member?(packet_in.slice_destination_vm(@graph,dest_mac))
       end
     end
     puts slice

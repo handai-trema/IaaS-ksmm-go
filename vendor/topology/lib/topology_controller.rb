@@ -173,7 +173,7 @@ class TopologyController < Trema::Controller
       #puts "destination_mac:" + packet_in.destination_mac
       if packet_in.source_ip_address.to_s != "0.0.0.0"
         #仮想マシンはtopologyに追加しない
-        if packet_in.source_ip_address.to_a[3] <= 100 && packet_in.source_ip_address.to_a[0] > 191 then
+        if (packet_in.source_ip_address.to_a[3] <= 100 && packet_in.source_ip_address.to_a[0] > 191) then
           @topology.maybe_add_host(packet_in.source_mac,
                                    packet_in.source_ip_address,
                                    dpid,
@@ -190,6 +190,19 @@ class TopologyController < Trema::Controller
   def flood_lldp_frames
     @topology.ports.each do |dpid, ports|
       send_lldp dpid, ports
+    end
+  end
+
+  def send_flowstatsrequest
+    #FlowStatsを送るメソッド
+    @topology.switches.each do |dpid|
+      send_message dpid, FlowStats::Request.new
+    end
+  end
+
+  def send_aggregatestatsrequest
+    @topology.switches.each do |dpid|
+      send_message dpid, AggregateStats::Request.new
     end
   end
 
