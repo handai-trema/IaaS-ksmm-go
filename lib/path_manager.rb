@@ -83,7 +83,11 @@ class PathManager < Trema::Controller
   end
 
   def add_host(mac_address, port, _topology)
-    puts "--add_host:" + mac_address + "--"
+    print "PathManager::add_host("
+    print mac_address
+    print ", "
+    print port
+    puts ", _topology)"
     @graph.add_link mac_address, port
   end
 

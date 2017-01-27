@@ -12,6 +12,21 @@ class PathInSliceManager < PathManager
 
   # rubocop:disable MethodLength
   def packet_in(_dpid, packet_in)
+    puts "PathInSliceManager::packet_in(_dpid, packet_in)"
+    puts "--packet_in information"
+    print " +dpid:"
+    puts packet_in.dpid
+    print " +in_port:"
+    puts packet_in.in_port
+    print " +source_mac:"
+    puts packet_in.source_mac
+    print " +destination_mac:"
+    puts packet_in.destination_mac
+    print " +source_ip_address:"
+    puts packet_in.source_ip_address.to_s
+    print " +destination_ip_address:"
+    puts packet_in.destination_ip_address.to_s
+
     #puts "packet_in_slice_manager!!"
     return unless packet_in.data.is_a? Parser::IPv4Packet
     #puts packet_in.source_ip_address.to_a[0].class
@@ -21,7 +36,6 @@ class PathInSliceManager < PathManager
     return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] > 100)
     return if (packet_in.source_ip_address.to_s == "192.168.10.10" && packet_in.destination_ip_address.to_a[3] > 100)
     return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_s == "192.168.10.10")
-    puts "packet_in in path_in_slice_manager"
     #puts packet_in.source_ip_address.to_s
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
     #サーバのIPを見かけたら、macアドレスを保存しておく
@@ -37,13 +51,13 @@ class PathInSliceManager < PathManager
       #puts each.member?(packet_in.slice_source)
       #puts each.member?(packet_in.slice_destination(@graph))
       if packet_in.destination_ip_address.to_a[3] <= 100 then
-        puts "less 100"
+        puts "dest_ip <= 100(physical machine)"
         puts each.member?(packet_in.slice_source)
         puts each.member?(packet_in.slice_destination(@graph))
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination(@graph))
       elsif (packet_in.destination_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] <= 200) then
-        puts "more 100"
+        puts "100 < dest_ip && dest_ip <= 200(container on server1)"
         if @server_mac.has_key?(1) then
           dammy_mac = @server_mac[1]
         else
@@ -52,6 +66,7 @@ class PathInSliceManager < PathManager
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination_vm(dammy_mac))
       elsif (packet_in.destination_ip_address.to_a[3] > 200) then
+        puts "200 < dest_ip(container on server2)"
         if @server_mac.has_key?(2) then
           dammy_mac = @server_mac[2]
         else
@@ -63,11 +78,11 @@ class PathInSliceManager < PathManager
     end
     puts slice
     ports = if slice
-              puts "slice is true"
+              puts "slice is found"
               path = maybe_create_shortest_path_in_slice(slice.name, packet_in)
               path ? [path.out_port] : []
             else
-              puts "slice if false"
+              puts "slice is not found"
               external_ports(packet_in)
             end
     #puts "--path--"
@@ -78,7 +93,13 @@ class PathInSliceManager < PathManager
 
 #IPでコンテナを判別して、ホストのみをグラフに入れる（コンテナは弾く
   def add_host_or_container(mac_address, ip_address, port, _topology)
-    puts "--add_host_or_container:" + mac_address + "--"
+    print "PathInSliceManager::add_host_or_container("
+    print mac_address
+    print ", "
+    print ip_address
+    print ", "
+    print port
+    puts ", _topology)"
 ############################################
 #	         ホストかコンテナか
 ############################################

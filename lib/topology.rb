@@ -78,7 +78,16 @@ class Topology
     mac_address, ip_address, dpid, port_no = *host_or_container
     return if @hosts_and_containers.include?(host_or_container) || ip_address == nil
     @hosts_and_containers << host_or_container
-    puts ip_address.to_s + " is added in topology"
+    #puts ip_address.to_s + " is added in topology"
+    print "Topology::maybe_add_host_or_container("
+    print mac_address
+    print ", "
+    print ip_address
+    print ", dpid:"
+    print dpid
+    print ", port_no:"
+    print port_no
+    puts  ")"
     maybe_send_handler :add_host_or_container, mac_address, ip_address, Port.new(dpid, port_no), self
   end
 
