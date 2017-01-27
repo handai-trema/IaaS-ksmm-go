@@ -44,7 +44,7 @@ class PathInSliceManager < PathManager
           each.member?(packet_in.slice_destination(@graph))
       elsif (packet_in.destination_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] <= 200) then
         puts "more 100"
-        if @server_mac,has_key?(1) then
+        if @server_mac.has_key?(1) then
           dammy_mac = @server_mac[1]
         else
           dammy_mac = Mac.new ("00:00:00:00:00:01")
@@ -52,7 +52,7 @@ class PathInSliceManager < PathManager
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination_vm(dammy_mac))
       elsif (packet_in.destination_ip_address.to_a[3] > 200) then
-        if @server_mac,has_key?(2) then
+        if @server_mac.has_key?(2) then
           dammy_mac = @server_mac[2]
         else
           dammy_mac = Mac.new ("00:00:00:00:00:02")

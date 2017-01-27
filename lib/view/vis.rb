@@ -27,12 +27,12 @@ module View
           i += 1
       end
       i = 0
-      hosts = host_without_container.each_with_object({}) do |each, tmp|
+      hosts = host_without_container.values.each_with_object({}) do |each, tmp|
         tmp[i] = { "id"=> 100+i, "label"=> each[0].to_s }
         i += 1
       end
       i = 0
-      h_links = host_without_container.each_with_object({}) do |each, tmp|
+      h_links = host_without_container.values.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
          tmp[nodes.length+i] = { "id"=> 10000+nodes.length+i, "from"=> each[2], "to"=> 100+i }
         i += 1
