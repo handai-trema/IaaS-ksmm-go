@@ -83,11 +83,10 @@ class Topology
   end
 
 #追加
-  def maybe_add_container(*container)
-    container_mac_address, container_ip_address, server_mac = *container
-    return if @containers.include?(container) || container_ip_address == nil
+  def add_container(*container)
+    container_mac_address, server_mac = *container
     @containers << container
-    puts _ip_address.to_s + " is added in topology"
+    puts container_mac_address.to_s + " is added in topology"
     maybe_send_handler :add_container, mac_address, self#Viewへおくる
   end
 

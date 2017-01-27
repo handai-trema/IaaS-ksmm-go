@@ -156,7 +156,7 @@ class TopologyController < Trema::Controller
   end
 
   def add_container(container)
-    @topology.maybe_add_container(container)
+    @topology.add_container(container)
   end
 
   def update_slice(slice)
