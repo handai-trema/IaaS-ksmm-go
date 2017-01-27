@@ -12,7 +12,7 @@ class PathManager < Trema::Controller
   def start
     @observers = []
     @graph = Graph.new
-    @server_mac = nil
+    @server_mac = {}
     logger.info 'Path Manager started.'
   end
 
@@ -105,29 +105,49 @@ class PathManager < Trema::Controller
     p packet_in.destination_mac
     destination_ip = packet_in.destination_ip_address.to_a
     source_ip = packet_in.source_ip_address.to_a
-    if destination_ip[3] > 100 then
-      if @server_mac.nil? then
+    if destination_ip[3] > 100  && destination_ip[3] <= 200 then
+      if @server_mac.has_key?(1) then
+        dest = @server_mac[1]
+        puts "dest rewrited by saved mac!!"
+        p dest
+      else
         dest = Mac.new ("00:00:00:00:00:01")
         puts "dest rewrited by new mac!!"
         p dest
-      else
-        dest = @server_mac
+      end
+    elsif destination_ip[3] > 200 then
+      if @server_mac.has_key?(2) then
+        dest = @server_mac[2]
         puts "dest rewrited by saved mac!!"
         p dest
+      else
+        dest = Mac.new ("00:00:00:00:00:02")
+        puts "dest rewrited by new mac!!"
+        p dest
       end
-      #dest = "54:53:ed:1c:36:82"
     else
       dest = packet_in.destination_mac
     end
-    if source_ip[3] > 100 then
-      if @server_mac.nil? then
+    if source_ip[3] > 100  && source_ip[3] <= 200 then
+      if @server_mac.has_key?(1) then
+        source = @server_mac[1]
+        puts "source rewrited by saved mac!!"
+        p source
+      else
         source = Mac.new ("00:00:00:00:00:01")
         puts "source rewrited by new mac!!"
-      else
-        source = @server_mac
-        puts "source rewrited by saved mac!!"
+        p source
       end
-      #source = "54:53:ed:1c:36:82"
+    elsif source_ip[3] > 200 then
+      if @server_mac.has_key?(2) then
+        source = @server_mac[2]
+        puts "souorce rewrited by saved mac!!"
+        p source
+      else
+        source = Mac.new ("00:00:00:00:00:02")
+        puts "source rewrited by new mac!!"
+        p source
+      end
     else
       source = packet_in.source_mac
     end

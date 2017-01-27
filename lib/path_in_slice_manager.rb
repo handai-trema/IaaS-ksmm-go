@@ -26,23 +26,39 @@ class PathInSliceManager < PathManager
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
     #サーバのIPを見かけたら、macアドレスを保存しておく
     if packet_in.source_ip_address.to_s == "192.168.10.10" then
-      @server_mac = packet_in.source_mac
+      @server_mac[1] = packet_in.source_mac
+      puts "--Server mac saved!!--"
+    elsif packet_in.source_ip_address.to_s == "192.168.10.20" then
+      @server_mac[2] = packet_in.source_mac
       puts "--Server mac saved!!--"
     end
     slice = Slice.find do |each|
       #同じスライスに属しているかを判定
       #puts each.member?(packet_in.slice_source)
       #puts each.member?(packet_in.slice_destination(@graph))
-      if packet_in.destination_ip_address.to_a[3] < 100 then
+      if packet_in.destination_ip_address.to_a[3] <= 100 then
         puts "less 100"
         puts each.member?(packet_in.slice_source)
         puts each.member?(packet_in.slice_destination(@graph))
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination(@graph))
-      else
+      elsif (packet_in.destination_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] <= 200) then
         puts "more 100"
+        if @server_mac,has_key?(1) then
+          dammy_mac = @server_mac[1]
+        else
+          dammy_mac = Mac.new ("00:00:00:00:00:01")
+        end
         each.member?(packet_in.slice_source) &&
-          each.member?(packet_in.slice_destination_vm(@graph,@server_mac))
+          each.member?(packet_in.slice_destination_vm(dammy_mac))
+      elsif (packet_in.destination_ip_address.to_a[3] > 200) then
+        if @server_mac,has_key?(2) then
+          dammy_mac = @server_mac[2]
+        else
+          dammy_mac = Mac.new ("00:00:00:00:00:02")
+        end
+        each.member?(packet_in.slice_source) &&
+          each.member?(packet_in.slice_destination_vm(dammy_mac))
       end
     end
     puts slice
