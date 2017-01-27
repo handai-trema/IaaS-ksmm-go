@@ -52,28 +52,14 @@ class TopologyController < Trema::Controller
   end
 
   def packet_in(dpid, packet_in)
-    #puts "--ARP TABLE--"
-    #puts @arp_table
-    #puts "--end table--"
     if packet_in.lldp?
       @topology.maybe_add_link Link.new(dpid, packet_in)
     elsif packet_in.data.is_a? Arp
-      #puts "ARP packet in"
-      #puts packet_in.source_mac
-      #@topology.maybe_add_host(packet_in.source_mac,
-      #                         packet_in.sender_protocol_address,
-      #                         dpid,
-      #                         packet_in.in_port)
     elsif packet_in.data.is_a? Pio::Arp::Request
-      #puts @arp_table
-      #puts packet_in.source_mac.class
       arp_request = packet_in.data
-      #puts arp_request.sender_protocol_address.to_s
       unless @arp_table.include?(arp_request.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_request.sender_protocol_address.to_s,packet_in.source_mac)
-        #puts "ARP Table is added!!"
-        #puts @arp_table
       end
       if @arp_table.include?(arp_request.target_protocol_address.to_s) then
         send_packet_out(
@@ -86,23 +72,17 @@ class TopologyController < Trema::Controller
           ).to_binary,
           actions: SendOutPort.new(packet_in.in_port)
         )
-        #puts "ARP reply created!!"
       else
         @topology.ports.each do |dpid,ports|
           ports.each do |port|
             flag = false
             @topology.links.each do |link|
-              #          puts dpid
-              #          puts port.port_no
-              #          puts link.dpid_a
-              #          puts link.port_a
               if (link.dpid_a == dpid && link.port_a == port.port_no) || (link.dpid_b == dpid && link.port_b == port.port_no) then
                 flag = true
                 break
               end
             end
             if !flag then
-              #puts "dpid=#{dpid},port=#{port.port_no}"
               send_packet_out(
                 dpid,
                 raw_data: packet_in.raw_data,
@@ -112,41 +92,22 @@ class TopologyController < Trema::Controller
           end
         end
       end
-      #ARP Requestが来たときにでホストを登録
-      #仮想マシンはtopologyに追加しない
-#      unless packet_in.sender_protocol_address.to_a[3] > 100 then
-#        @topology.maybe_add_host(packet_in.source_mac,
-#                                 packet_in.sender_protocol_address,
-#                                 dpid,
-#                                 packet_in.in_port)
-#        puts "host is registered by Pio::Arp::Request"
-#      end
     elsif packet_in.data.is_a? Pio::Arp::Reply
-      #puts "source_mac:"+ packet_in.source_mac
-      #puts "destination_mac" + packet_in.destination_mac
-      #puts packet_in.data.sender_protocol_address
       arp_reply = packet_in.data
       unless @arp_table.include?(arp_reply.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_reply.sender_protocol_address.to_s,packet_in.source_mac)
-        #puts "ARP Table is added!!"
-        #puts @arp_table
       end
         @topology.ports.each do |dpid,ports|
           ports.each do |port|
             flag = false
             @topology.links.each do |link|
-              #          puts dpid
-              #          puts port.port_no
-              #          puts link.dpid_a
-              #          puts link.port_a
               if (link.dpid_a == dpid && link.port_a == port.port_no) || (link.dpid_b == dpid && link.port_b == port.port_no) then
                 flag = true
                 break
               end
             end
             if !flag then
-              #puts "dpid=#{dpid},port=#{port.port_no}"
               send_packet_out(
                 dpid,
                 raw_data: packet_in.raw_data,
@@ -165,34 +126,13 @@ class TopologyController < Trema::Controller
 #        puts "host is registered by Pio::Arp::Reply"
 #      end
     elsif packet_in.data.is_a? Parser::IPv4Packet
-      #puts @arp_table
-      #puts "IPv4Packet is Packet_In"
-      #puts "source_ip_address" + packet_in.source_ip_address.class.to_s
-      #puts "source_mac:"+ packet_in.source_mac
-      #puts "destination_ip_address" + packet_in.destination_ip_address.to_s
-      #puts "destination_mac:" + packet_in.destination_mac
       if packet_in.source_ip_address.to_s != "0.0.0.0"
         #ホストをトポロジに追加
-        if packet_in.source_ip_address.to_a[3] <= 100 && packet_in.source_ip_address.to_a[0] > 191 then
-          if packet_in.source_ip_address.to_s == "192.168.10.10" then
-            @server_mac1 = packet_in.source_mac
-            puts "--Server mac saved!!--"
-          end
-          if packet_in.source_ip_address.to_s == "192.168.10.20" then
-            @server_mac2 = packet_in.source_mac
-            puts "--Server mac saved!!--"
-          end
-          @topology.maybe_add_host(packet_in.source_mac,
-                                   packet_in.source_ip_address,
-                                   dpid,
-                                   packet_in.in_port)
-          #puts "host is registered by Parser::IPv4Packet"
-        else #コンテナをトポロジに追加
-　　　　　　　　　　container_server_mac = @server_mac1 if packet_in.source_ip_address.to_a[3] < 200
-　　　　　　　　　　container_server_mac = @server_mac2 unless packet_in.source_ip_address.to_a[3] < 200
-          @topology.maybe_add_container(packet_in.source_mac,
-                                        packet_in.source_ip_address,
-                                        container_server_mac)
+        if packet_in.source_ip_address.to_a[0] > 191 then
+          @topology.maybe_add_host_or_container(packet_in.source_mac,
+                                                packet_in.source_ip_address,
+                                                dpid,
+                                                packet_in.in_port)
         end
       end
     else
@@ -213,6 +153,10 @@ class TopologyController < Trema::Controller
 
   def del_path(path)
     @topology.maybe_delete_path(path)
+  end
+
+  def add_container(container)
+    @topology.maybe_add_container(container)
   end
 
   def update_slice(slice)

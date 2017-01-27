@@ -74,20 +74,21 @@ class Topology
     maybe_send_handler :add_link, port_a, port_b, self
   end
 
-  def maybe_add_host(*host)
+  def maybe_add_host_or_container(*host)
     mac_address, ip_address, dpid, port_no = *host
     return if @hosts.include?(host) || ip_address == nil
     @hosts << host
     puts _ip_address.to_s + " is added in topology"
-    maybe_send_handler :add_host, mac_address, Port.new(dpid, port_no), self
+    maybe_send_handler :add_host_or_container, mac_address, ip_address, Port.new(dpid, port_no), self
   end
+
 #追加
   def maybe_add_container(*container)
     container_mac_address, container_ip_address, server_mac = *container
     return if @containers.include?(container) || container_ip_address == nil
     @containers << container
     puts _ip_address.to_s + " is added in topology"
-    maybe_send_handler :add_container, mac_address, Port.new(dpid, port_no), self
+    maybe_send_handler :add_container, mac_address, self#Viewへおくる
   end
 
   def maybe_add_path(shortest_path)
