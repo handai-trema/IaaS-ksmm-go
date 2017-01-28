@@ -39,16 +39,20 @@ network.setOptions(options);
     var l_data = new Array();
     var tmp = new Object();
     for(var i in jsonData[0].nodes){
-       tmp = { id:+jsonData[0].nodes[i].id, label:jsonData[0].nodes[i].label, image: './html_images/switch.png', shape: 'image'};
-       n_data.push( tmp );
+      tmp = { id:+jsonData[0].nodes[i].id, label:jsonData[0].nodes[i].label, image: './html_images/switch.png', shape: 'image'};
+      n_data.push( tmp );
     }
     for(var i in jsonData[0].hosts){
-       tmp = { id:+jsonData[0].hosts[i].id, label:jsonData[0].hosts[i].label, image: './html_images/computer_laptop.png', shape: 'image'}
-       n_data.push( tmp );
+      tmp = { id:+jsonData[0].hosts[i].id, label:jsonData[0].hosts[i].label, image: './html_images/computer_laptop.png', shape: 'image'}
+      n_data.push( tmp );
+    }
+    for(var i in jsonData[0].containers){
+      tmp = { id:+jsonData[0].containers[i].id, label:jsonData[0].containers[i].label, image: './html_images/container.png', shape: 'image'}
+      n_data.push( tmp );
     }
     for(var i in jsonData[0].links){
-       tmp = { id:+jsonData[0].links[i].id, from:jsonData[0].links[i].from, to:jsonData[0].links[i].to, length: EDGE_LENGTH}
-       l_data.push( tmp );
+      tmp = { id:+jsonData[0].links[i].id, from:jsonData[0].links[i].from, to:jsonData[0].links[i].to, length: EDGE_LENGTH}
+      l_data.push( tmp );
     }
     drawgraph(n_data, l_data);
   };
@@ -155,15 +159,10 @@ var click = function() {
     var check_num = 0;
     for (var i=0; i<active_slice.length; i++){ 
       if (active_slice[i] == true) {check_num = i}
-      console.log('0', active_slice[i]) 
     }
-      //console.log('0', active_slice)
-      console.log('0', check_num)
     if ( check_num == 0 ){
       return checkPath(path, hosts, node1, node2);
     }else{
-      console.log('a:', ($.inArray(path[0], pre_data[0].slices[check_num-1].host) < 0))
-      console.log('b:', ($.inArray(path[path.length-1], pre_data[0].slices[check_num-1].host) < 0))
       if (($.inArray(path[0], pre_data[0].slices[check_num-1].host) < 0) || ($.inArray(path[path.length-1], pre_data[0].slices[check_num-1].host) < 0)){
         return false;
       }else{
@@ -172,12 +171,12 @@ var click = function() {
     }
   };
 
-  var PathArrowColor = function(path, hosts, node1, node2) {//active_sliceはグローバル
-    color_slice = []
-    for (var i=0; i<color_slice.length; i++){
-      return checkPathInSlice(path, hosts, node1, node2, i)
-    }
-  };
+//  var PathArrowColor = function(path, hosts, node1, node2) {//スライスごとにパスの色を変えようかと思ったけどとりあえずなし
+//    color_slice = []
+//    for (var i=0; i<color_slice.length; i++){
+//      return checkPathInSlice(path, hosts, node1, node2, i)
+//    }
+//  };
 
   var checkEdgeInPath = function(edge, path, hosts) {
     var path_id = pathConvertedMacToId(path, hosts);
@@ -201,6 +200,10 @@ var click = function() {
       if( hosts[i].label == path[1] ){ new_path[1] = hosts[i].id; }//コンテナ用
       if( hosts[i].label == path[path.length-2] ){ new_path[path.length-2] = hosts[i].id; }//コンテナ用
       if( hosts[i].label == path[path.length-1] ){ new_path[path.length-1] = hosts[i].id; }
+    }
+    for(var i=0; i<pre_data[0].containers.length; i++){
+      if( pre_data[0].containers[i].label == path[0] ){ new_path[0] = pre_data[0].containers[i].id; }
+      if( pre_data[0].containers[i].label == path[path.length-1] ){ new_path[path.length-1] = pre_data[0].containers[i].id; }
     }
     return new_path;
   };
@@ -245,9 +248,16 @@ function onRadioButtonChange() {
     for (var i = 0; i < pre_data[0].slices.length; i++){
       tmp = [];
       for (var j = 0; j < pre_data[0].hosts.length; j++){
-        if ($.inArray(pre_data[0].hosts[j].label, pre_data[0].slices[i].host) >= 0){
-          nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop_slice' + String(i+1) +'.png'}]);
+        if ($.inArray(pre_data[0].hosts[j].label, pre_data[0].slices[i].host) >= 0){//スライスに含まれるか
+            nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop_slice' + String(i+1) +'.png'}]);
           tmp.push(pre_data[0].hosts[j].label);
+          host_s[pre_data[0].slices[i].name] = tmp;
+        }
+      }
+      for (var j = 0; j < pre_data[0].containers.length; j++){
+        if ($.inArray(pre_data[0].containers[j].label, pre_data[0].slices[i].host) >= 0){//スライスに含まれるか
+            nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container_slice' + String(i+1) +'.png'}]);
+          tmp.push(pre_data[0].containers[j].label);
           host_s[pre_data[0].slices[i].name] = tmp;
         }
       }
@@ -262,6 +272,13 @@ function onRadioButtonChange() {
           nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop_slice' + String(i+1) +'.png'}]);
         }else{
           nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop.png'}]);
+        }
+      }
+      for (var j = 0; j < pre_data[0].containers.length; j++){
+        if ($.inArray(pre_data[0].containers[j].label, pre_data[0].slices[i].host) >= 0){
+          nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container_slice' + String(i+1) +'.png'}]);
+        }else{
+          nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container.png'}]);
         }
       }
       target.innerHTML = JSON.stringify(pre_data[0].slices[i].host, null, 4);

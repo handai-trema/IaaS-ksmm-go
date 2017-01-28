@@ -56,7 +56,7 @@ module View
                     "containers"=> containers.values, 
                     "links"=> (links.merge(h_links)).merge(c_links).values, 
                     "paths"=>topology.paths, "slices"=>topology.slices], io)
-      end
+      end#パスにコンテナを入れる処理がまだ、スライスの処理がまだ
     end
     # rubocop:enable AbcSize
 #slices
