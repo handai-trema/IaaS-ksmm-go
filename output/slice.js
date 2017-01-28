@@ -1,1 +1,1 @@
-nodes.push({id: 143394496309822, label: '82:6a:a2:03:ea:3e', font: {size:15, color:'red', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});nodes.push({id: 108733144427651, label: '62:e4:68:72:ec:83', font: {size:15, color:'red', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});
+nodes.push({id: 236392295950044, label: 'd6:ff:5e:d3:e6:dc', font: {size:15, color:'red', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});nodes.push({id: 64089664516965, label: '3a:4a:09:af:f3:65', font: {size:15, color:'red', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});
