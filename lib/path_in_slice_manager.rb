@@ -8,24 +8,71 @@ class PathInSliceManager < PathManager
   def start
     super
     logger.info "#{name} started."
+
+    @slice_admin = Slice.create("admin")
   end
 
   # rubocop:disable MethodLength
   def packet_in(_dpid, packet_in)
-    puts "PathInSliceManager::packet_in(_dpid, packet_in)"
-    puts "--packet_in information"
-    print " +dpid:"
-    puts packet_in.dpid
-    print " +in_port:"
-    puts packet_in.in_port
-    print " +source_mac:"
-    puts packet_in.source_mac
-    print " +destination_mac:"
-    puts packet_in.destination_mac
-    print " +source_ip_address:"
-    puts packet_in.source_ip_address.to_s
-    print " +destination_ip_address:"
-    puts packet_in.destination_ip_address.to_s
+    if packet_in.data.is_a? Parser::IPv4Packet
+      puts ""#綺麗に表示するためだけの空行
+      puts "PathInSliceManager::packet_in(_dpid, packet_in)"
+      puts "--packet_in information(IPv4Packet)"
+      print " +dpid:"
+      puts packet_in.dpid
+      print " +in_port:"
+      puts packet_in.in_port
+      print " +source_mac:"
+      puts packet_in.source_mac
+      print " +destination_mac:"
+      puts packet_in.destination_mac
+      print " +source_ip_address:"
+      puts packet_in.source_ip_address.to_s
+      print " +destination_ip_address:"
+      puts packet_in.destination_ip_address.to_s
+    end
+
+    if packet_in.data.is_a? Pio::Arp::Request
+      #もし，ARPリクエストの宛先・送信元がアドミンなら送信元をアドミンスライスに追加
+      puts ""#綺麗に表示するためだけの空行
+      puts "PathInSliceManager::packet_in(_dpid, packet_in)"
+      puts "--packet_in information(Arp::Request)"
+
+      arp_request = packet_in.data
+      if arp_request.target_protocol_address.to_s == "192.168.10.13" ||
+          arp_request.sender_protocol_address.to_s == "192.168.10.13" then
+        puts "  +ARP Request.target is 192.168.10.13(admin)"
+        puts "   +Request is from: #{arp_request.sender_protocol_address.to_s}, #{arp_request.source_mac}"
+        puts "   +Request is  to : #{arp_request.target_protocol_address.to_s}"
+
+        unless @slice_admin.member?(packet_in.slice_source)
+          puts "   --add \"new_user:mac\" to \"slice:admin\"--"
+          @slice_admin.add_mac_address(arp_request.source_mac,
+                                       dpid: packet_in.dpid, port_no: packet_in.in_port)
+        end
+      end
+    elsif packet_in.data.is_a? Pio::Arp::Reply
+      #もし,ARPリプライの宛先・送信元がアドミンならこれをアドミンスライスに追加
+      puts ""#綺麗に表示するためだけの空行
+      puts "PathInSliceManager::packet_in(_dpid, packet_in)"
+      puts "--packet_in information(Arp::Reply)"
+
+      arp_reply = packet_in.data
+      if arp_reply.sender_protocol_address.to_s == "192.168.10.13" ||
+          arp_reply.target_protocol_address.to_s == "192.168.10.13" then
+        puts " +ARP Reply.sender is 192.168.10.13(admin)"
+        puts "  +Reply is from: #{arp_reply.sender_protocol_address}, #{arp_reply.source_mac}"
+        puts "  +Reply is  to : #{arp_reply.target_protocol_address}"
+
+        unless @slice_admin.member?(packet_in.slice_source)
+          puts "   --add \"admin:mac\" to slice:admin\"--"
+          @slice_admin.add_mac_address(arp_reply.source_mac,
+                                       dpid: packet_in.dpid, port_no: packet_in.in_port)
+        end
+      end
+    end
+
+
 
     #puts "packet_in_slice_manager!!"
     return unless packet_in.data.is_a? Parser::IPv4Packet
@@ -93,6 +140,7 @@ class PathInSliceManager < PathManager
 
 #IPでコンテナを判別して、ホストのみをグラフに入れる（コンテナは弾く
   def add_host_or_container(mac_address, ip_address, port, _topology)
+    puts ""#綺麗に表示するためだけの空行
     print "PathInSliceManager::add_host_or_container("
     print mac_address
     print ", "
