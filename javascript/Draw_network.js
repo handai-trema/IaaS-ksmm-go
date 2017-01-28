@@ -2,6 +2,7 @@ var pre_data;
 var nodes;
 var edges;
 var network;
+var active_slice;//[0]はallなので実際は1多い
 
 $(function(){
   var jsonFilePath = 'tmp/topology.json';
@@ -83,12 +84,13 @@ network.setOptions(options);
       }, 1000);
     });
   };
-  setInterval(init,1000);
+  setInterval(init,3000);
 });
 
 var click = function() {
   network.on("click", function (params) {
     console.log('click:', params)
+    console.log('active_slice:', active_slice)
     var path = new Array();
     var newColor = 'red';
     var oldColor = '#848484';
@@ -100,7 +102,7 @@ var click = function() {
         edges.update([{id:pre_data[0].links[j].id, arrows:{to:{enabled:oldarrow.to}, from:{enabled:oldarrow.from}}, color:{color:oldColor,highlight:oldColor}}]);
       }
       for(var i in pre_data[0].paths){
-        if (checkPath(pre_data[0].paths[i], pre_data[0].hosts, params.nodes[0])){
+        if (checkPathInSlice(pre_data[0].paths[i], pre_data[0].hosts, params.nodes[0])){
           path.push( pre_data[0].paths[i] );
           for(var j in pre_data[0].links){
             if (checkEdgeInPath(pre_data[0].links[j], pre_data[0].paths[i], pre_data[0].hosts)){//エッジの色を赤に
@@ -117,7 +119,7 @@ var click = function() {
       var count = 0;
       //ノードが二つだけ選択された場合，その経路間のパスを示す
       for(var i in pre_data[0].paths){//全てのパスから検索
-        if (checkPath(pre_data[0].paths[i], pre_data[0].hosts, params.nodes[0], params.nodes[1])){//srcとdestがあってるpathを処理
+        if (checkPathInSlice(pre_data[0].paths[i], pre_data[0].hosts, params.nodes[0], params.nodes[1])){//srcとdestがあってるpathを処理
           count++;
           path.push( pre_data[0].paths[i] );
 /*          for(var j=0; j<pre_data[0].paths[i].length; j++){//ノードの色を赤に(image使ってると意味なかった
@@ -143,9 +145,37 @@ var click = function() {
   var checkPath = function(path, hosts, node1, node2) {
     var path_id = pathConvertedMacToId(path, hosts);
     if (typeof(node2) == "undefined"){//pathがnode1のパスか
-      return (path_id[0] == node1)
+      return (path_id[0] == node1);
     }else {//pathがnode1とnode2のパスか
-      return ((path_id[0] == node1 && path_id[path_id.length-1] == node2) || (path_id[0] == node2 && path_id[path_id.length-1] == node1))
+      return ((path_id[0] == node1 && path_id[path_id.length-1] == node2) || (path_id[0] == node2 && path_id[path_id.length-1] == node1));
+    }
+  };
+
+  var checkPathInSlice = function(path, hosts, node1, node2) {//active_sliceはグローバル
+    var check_num = 0;
+    for (var i=0; i<active_slice.length; i++){ 
+      if (active_slice[i] == true) {check_num = i}
+      console.log('0', active_slice[i]) 
+    }
+      //console.log('0', active_slice)
+      console.log('0', check_num)
+    if ( check_num == 0 ){
+      return checkPath(path, hosts, node1, node2);
+    }else{
+      console.log('a:', ($.inArray(path[0], pre_data[0].slices[check_num-1].host) < 0))
+      console.log('b:', ($.inArray(path[path.length-1], pre_data[0].slices[check_num-1].host) < 0))
+      if (($.inArray(path[0], pre_data[0].slices[check_num-1].host) < 0) || ($.inArray(path[path.length-1], pre_data[0].slices[check_num-1].host) < 0)){
+        return false;
+      }else{
+        return checkPath(path, hosts, node1, node2);
+      }
+    }
+  };
+
+  var PathArrowColor = function(path, hosts, node1, node2) {//active_sliceはグローバル
+    color_slice = []
+    for (var i=0; i<color_slice.length; i++){
+      return checkPathInSlice(path, hosts, node1, node2, i)
     }
   };
 
@@ -163,12 +193,14 @@ var click = function() {
   var pathConvertedMacToId = function(path, hosts) {
     //pathのMACをIDに変換して返す
 　　　 var new_path = new Array(path.length);
-    for(var i=0; i<hosts.length; i++){
-      if( hosts[i].label == path[0] ){ new_path[0] = hosts[i].id; }
-      if( hosts[i].label == path[path.length-1] ){ new_path[path.length-1] = hosts[i].id; }
-    }
     for(var i=1; i<path.length-1; i++){
       new_path[i] = path[i];
+    }
+    for(var i=0; i<hosts.length; i++){
+      if( hosts[i].label == path[0] ){ new_path[0] = hosts[i].id; }
+      if( hosts[i].label == path[1] ){ new_path[1] = hosts[i].id; }//コンテナ用
+      if( hosts[i].label == path[path.length-2] ){ new_path[path.length-2] = hosts[i].id; }//コンテナ用
+      if( hosts[i].label == path[path.length-1] ){ new_path[path.length-1] = hosts[i].id; }
     }
     return new_path;
   };
@@ -191,11 +223,12 @@ var click = function() {
 
 var createRadioButton = function() {
     if (pre_data[0].slices == []) {return}
-    var str = '<input id="Radio0" name="RadioGroup1" type="radio" onchange="onRadioButtonChange();" /> <label for="Radio1">all</label><br/>';
+    var str = '<input id="Radio0" name="RadioGroup1" type="radio" onchange="onRadioButtonChange();" checked /> <label for="Radio1">all</label><br/>';
     for ( var i = 0; i < pre_data[0].slices.length; i++ ) {
     str = str + '<input id="Radio' + String(i+1) + '" name="RadioGroup1" type="radio" onchange="onRadioButtonChange();" /> <label for="Radio1">' + pre_data[0].slices[i].name + '</label><br/>';
     }
     document.getElementById('radiobutton').innerHTML = '<form name="form1" action="">' + str +  '</form>';
+    onRadioButtonChange()
   };
     
 
@@ -204,14 +237,18 @@ function onRadioButtonChange() {
   for (var i = 0; i < pre_data[0].slices.length+1; i++){
     check[i] = eval("document.form1.Radio" + String(i) + ".checked");
   }
+  active_slice = check;
   var target = document.getElementById("output");
-  if (check[0] == true) {
+  if (check[0] == true) {//all
     var host_s = {};
+    var tmp = [];
     for (var i = 0; i < pre_data[0].slices.length; i++){
+      tmp = [];
       for (var j = 0; j < pre_data[0].hosts.length; j++){
         if ($.inArray(pre_data[0].hosts[j].label, pre_data[0].slices[i].host) >= 0){
           nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop_slice' + String(i+1) +'.png'}]);
-      //  host_s[pre_data[0].slices[i].name] += [pre_data[0].hosts[j].label];うまくうごかないからとりあえずなしで
+          tmp.push(pre_data[0].hosts[j].label);
+          host_s[pre_data[0].slices[i].name] = tmp;
         }
       }
     }
