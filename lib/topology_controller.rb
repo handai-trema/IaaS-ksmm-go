@@ -163,6 +163,19 @@ class TopologyController < Trema::Controller
     @topology.maybe_update_slice(slice)
   end
 
+  def send_flowstatsrequest
+    #FlowStatsを送るメソッド
+    @topology.switches.each do |dpid|
+      send_message dpid, FlowStats::Request.new
+    end
+  end
+
+  def send_aggregatestatsrequest
+    @topology.switches.each do |dpid|
+      send_message dpid, AggregateStats::Request.new
+    end
+  end
+
   private
 
   def send_lldp(dpid, ports)
