@@ -54,14 +54,17 @@ class TopologyController < Trema::Controller
   def packet_in(dpid, packet_in)
     if packet_in.lldp?
       @topology.maybe_add_link Link.new(dpid, packet_in)
-    elsif packet_in.data.is_a? Arp
+    #elsif packet_in.data.is_a? Arp
     elsif packet_in.data.is_a? Pio::Arp::Request
+      #puts "TopologyController handle ARP REQUEST"
       arp_request = packet_in.data
       unless @arp_table.include?(arp_request.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
-        @arp_table.store(arp_request.sender_protocol_address.to_s,packet_in.source_mac)
+        @arp_table.store(arp_request.sender_protocol_address.to_s, packet_in.source_mac)
       end
       if @arp_table.include?(arp_request.target_protocol_address.to_s) then
+        #puts "ArpTable include src_IP"
+        puts "send_packet_out is called(1)"
         send_packet_out(
           dpid,
           raw_data: Arp::Reply.new(
@@ -73,7 +76,9 @@ class TopologyController < Trema::Controller
           actions: SendOutPort.new(packet_in.in_port)
         )
       else
+        puts "ArpTable does NOT include src_IP"
         @topology.ports.each do |dpid,ports|
+
           ports.each do |port|
             flag = false
             @topology.links.each do |link|
@@ -83,6 +88,7 @@ class TopologyController < Trema::Controller
               end
             end
             if !flag then
+              #puts "send_packet_out(#{dpid}, #{packet_in.raw_data}, #{SendOutPort.new(port.port_no)}) is called(2)"
               send_packet_out(
                 dpid,
                 raw_data: packet_in.raw_data,
@@ -93,6 +99,7 @@ class TopologyController < Trema::Controller
         end
       end
     elsif packet_in.data.is_a? Pio::Arp::Reply
+      #puts "TopologyController handle ARP REPLY"
       arp_reply = packet_in.data
       unless @arp_table.include?(arp_reply.sender_protocol_address.to_s) then
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
@@ -108,6 +115,7 @@ class TopologyController < Trema::Controller
               end
             end
             if !flag then
+              #puts "send_packet_out(#{dpid}, #{packet_in.raw_data}, #{SendOutPort.new(port.port_no)}) is called(3)"
               send_packet_out(
                 dpid,
                 raw_data: packet_in.raw_data,

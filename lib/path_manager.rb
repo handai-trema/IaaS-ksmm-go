@@ -14,7 +14,7 @@ class PathManager < Trema::Controller
     @graph = Graph.new
     @server_dpid = {}
     @server_port = {}
-    #@server_mac = {}
+    @server_mac = {}
     logger.info 'Path Manager started.'
   end
 
@@ -107,69 +107,57 @@ class PathManager < Trema::Controller
 #      @server_mac = packet_in.destination_mac
 #      puts "save server_mac!!"
 #    end
-    p packet_in.source_mac
-    p packet_in.destination_mac
+    puts " +path-src :#{packet_in.source_mac}"
+    puts " +path-dest:#{packet_in.destination_mac}"
     destination_ip = packet_in.destination_ip_address.to_a
     source_ip = packet_in.source_ip_address.to_a
     if destination_ip[3] > 100  && destination_ip[3] <= 200 then
       if @server_mac.has_key?(1) then
         dest = @server_mac[1]
-        puts "dest rewrited by saved mac!!"
-        p dest
+        puts "  +dest rewrited by saved mac(#{dest})!!"
       else
         dest = Mac.new ("00:00:00:00:00:01")
-        puts "dest rewrited by new mac!!"
-        p dest
+        puts "  +dest rewrited by new mac#{dest}!!"
       end
     elsif destination_ip[3] > 200 then
       if @server_mac.has_key?(2) then
         dest = @server_mac[2]
-        puts "dest rewrited by saved mac!!"
-        p dest
+        puts "  +dest rewrited by saved mac(#{dest})!!"
       else
         dest = Mac.new ("00:00:00:00:00:02")
-        puts "dest rewrited by new mac!!"
-        p dest
+        puts "  +dest rewrited by new mac(#{dest})!!"
       end
     else
       dest = packet_in.destination_mac
     end
     if source_ip[3] > 100  && source_ip[3] <= 200 then
       if @server_mac.has_key?(1) then
-        source = @server_mac[1]
-        puts "source rewrited by saved mac!!"
-        p source
+        src = @server_mac[1]
+        puts "  +source rewrited by saved mac(#{src})!!"
       else
-        source = Mac.new ("00:00:00:00:00:01")
-        puts "source rewrited by new mac!!"
-        p source
+        src = Mac.new ("00:00:00:00:00:01")
+        puts "  +source rewrited by new mac(#{src})!!"
       end
     elsif source_ip[3] > 200 then
       if @server_mac.has_key?(2) then
-        source = @server_mac[2]
-        puts "souorce rewrited by saved mac!!"
-        p source
+        src = @server_mac[2]
+        puts "  +souorce rewrited by saved mac(#{src})!!"
       else
-        source = Mac.new ("00:00:00:00:00:02")
-        puts "source rewrited by new mac!!"
-        p source
+        src = Mac.new ("00:00:00:00:00:02")
+        puts "  +source rewrited by new mac(#{src})!!"
       end
     else
-      source = packet_in.source_mac
+      src = packet_in.source_mac
     end
-    #puts "dump!!!!!!!!!!"
-    #puts packet_in.destination_mac
-    #puts packet_in.destination_mac.class
-    shortest_path =
-      #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
-      @graph.dijkstra(source, dest)
+
+    shortest_path =  @graph.dijkstra(src, dest)
     return unless shortest_path
     maybe_send_handler :add_path, shortest_path#可視化用
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
 #    end
     puts "パス情報"
-    puts shortest_path.class
+    #puts shortest_path.class
     Path.create shortest_path, packet_in
   end
 

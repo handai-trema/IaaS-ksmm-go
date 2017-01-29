@@ -50,7 +50,6 @@ class RoutingSwitch < Trema::Controller
   delegate :port_modify, to: :@topology
 
   def packet_in(dpid, packet_in)
-#ここでユーザをスライスを追加？
     @topology.packet_in(dpid, packet_in)
     @path_manager.packet_in(dpid, packet_in) unless packet_in.lldp?
   end
