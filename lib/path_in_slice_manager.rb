@@ -44,48 +44,55 @@ class PathInSliceManager < PathManager
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
 
     #サーバのIPを見かけたら、macアドレスを保存しておく
-    if packet_in.source_ip_address.to_s == "192.168.10.10" then
-      @server_mac[1] = packet_in.source_mac
-      puts "--Server mac saved!!--"
-    elsif packet_in.source_ip_address.to_s == "192.168.10.20" then
-      @server_mac[2] = packet_in.source_mac
-      puts "--Server mac saved!!--"
+    ipaddr = packet_in.destination_ip_address.to_a[3]
+    if ipaddr = 10 || (100 < ipaddr && ipaddr <= 200) then
+      #@server_mac[1] = packet_in.source_mac
+      @server_dpid[1] = packet_in.dpid
+      @server_port[1] = packet_in.in_port
+      puts "--Update Server1's dpid and port--"
+    elsif ipaddr = 20 || 200 < ipaddr then
+      #@server_mac[2] = packet_in.source_mac
+      @server_dpid[2] = packet_in.dpid
+      @server_port[2] = packet_in.in_port
+      puts "--Update Server1's dpid and port--"
     end
 
     slice = Slice.find do |each|
       #同じスライスに属しているかを判定
-      #puts each.member?(packet_in.slice_source)
-      #puts each.member?(packet_in.slice_destination(@graph))
+      puts "--slice: #{each}"
+      if packet_in.destination_ip_address.to_a[3] <= 100 then
+        #物理マシンの時
+        puts " --dest: physical machine (ip: .0~.100)"
+        puts "  +source is member? : #{each.member?(packet_in.slice_source)}"
+        puts "  +dest   is member? : #{each.member?(packet_in.slice_destination(@graph))}"
+        each.member?(packet_in.slice_source) &&
+          each.member?(packet_in.slice_destination(@graph))
+      elsif (packet_in.destination_ip_address.to_a[3] > 100 &&
+             packet_in.destination_ip_address.to_a[3] <= 200) then
+         unless @server_port.has_key?(1) && @server_dpid.has_key?(1) then
+          @server_dpid[1] = 0x1 #型適当．バグる気がする
+          @server_port[1] = 1 #型適当．バグる気がする
+         end
 
-      each.member?(packet_in.slice_source) &&
-           each.member?(packet_in.slice_destination(@graph))
+        puts " --dest: container on server1 (ip: .101~.200)"
+        puts "  +source is member? : #{each.member?(packet_in.slice_source)}"
+        puts "  +dest   is member? : #{each.member?({ dpid: @server_dpid[1],
+                                                      port_no: @server_port[1], mac: packet_in.source_mac })}"
+        each.member?(packet_in.slice_source) &&
+          each.member?({ dpid: @server_dpid[1], port_no: @server_port[1], mac: packet_in.source_mac })
+      elsif (packet_in.destination_ip_address.to_a[3] > 200) then
+        unless @server_port.has_key?(2) && @server_dpid.has_key?(2) then
+         @server_dpid[2] = 0x2 #型適当．バグる気がする
+         @server_port[2] = 2 #型適当．バグる気がする
+        end
 
-          #Miura：一時的にコメントアウト
-          # if packet_in.destination_ip_address.to_a[3] <= 100 then
-          #   puts "dest_ip <= 100(physical machine)"
-          #   puts each.member?(packet_in.slice_source)
-          #   puts each.member?(packet_in.slice_destination(@graph))
-          #   each.member?(packet_in.slice_source) &&
-          #     each.member?(packet_in.slice_destination(@graph))
-          # elsif (packet_in.destination_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] <= 200) then
-          #   puts "100 < dest_ip && dest_ip <= 200(container on server1)"
-          #   if @server_mac.has_key?(1) then
-          #     dammy_mac = @server_mac[1]
-          #   else
-          #     dammy_mac = Mac.new ("00:00:00:00:00:01")
-          #   end
-          #   each.member?(packet_in.slice_source) &&
-          #     each.member?(packet_in.slice_destination_vm(dammy_mac))
-          # elsif (packet_in.destination_ip_address.to_a[3] > 200) then
-          #   puts "200 < dest_ip(container on server2)"
-          #   if @server_mac.has_key?(2) then
-          #     dammy_mac = @server_mac[2]
-          #   else
-          #     dammy_mac = Mac.new ("00:00:00:00:00:02")
-          #   end
-          #   each.member?(packet_in.slice_source) &&
-          #     each.member?(packet_in.slice_destination_vm(dammy_mac))
-          # end
+        puts " --dest: container on server2 (ip: .201~.255)"
+        puts "  +source is member? : #{each.member?(packet_in.slice_source)}"
+        puts "  +dest   is member? : #{each.member?({ dpid: @server_dpid[2],
+                                                      port_no: @server_port[2], mac: packet_in.source_mac })}"
+        each.member?(packet_in.slice_source) &&
+          each.member?({ dpid: @server_dpid[2], port_no: @server_port[2], mac: packet_in.source_mac })
+      end
     end
 
     ports = if slice

@@ -12,7 +12,9 @@ class PathManager < Trema::Controller
   def start
     @observers = []
     @graph = Graph.new
-    @server_mac = {}
+    @server_dpid = {}
+    @server_port = {}
+    #@server_mac = {}
     logger.info 'Path Manager started.'
   end
 
