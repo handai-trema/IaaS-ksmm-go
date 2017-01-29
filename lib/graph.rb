@@ -5,17 +5,14 @@ require 'dijkstra_optimal'
 class Graph
   def initialize
     @graph = Hash.new([].freeze)
-    # スイッチ間のリンクの負荷を表すHash
-    @load_table = Hash.new({})
+  end
+
+  def get_length
+    @graph.length
   end
 
   def get_graph(key)
     @graph[key]
-  end
-
-  def update_load_table(dpid,num)
-    @load_table[dpid] = num
-    #puts @load_table.to_s
   end
 
   def fetch(node)
@@ -108,9 +105,9 @@ class Graph
     puts "find source_mac in dijkstra"
     #puts "source mac is " + source_mac
     #puts "destination mac is " + destination_mac
-    @graph.each do |key,val|
-      #puts "#{key} -> #{val}"
-    end
+    #@graph.each do |key,val|
+    #  puts "#{key} -> #{val}"
+    #end
     route = Dijkstra.new(@graph).run(source_mac, destination_mac)
     #route = DijkstraOpt.new(@graph,@load_table).run(source_mac, destination_mac)
     route.reject { |each| each.is_a? Integer }

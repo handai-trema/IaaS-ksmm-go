@@ -20,8 +20,8 @@ class RoutingSwitch < Trema::Controller
   end
 
   timer_event :flood_lldp_frames, interval: 1.sec
-  timer_event :send_flowstatsrequest, interval: 1.sec
-  #timer_event :send_aggregatestatsrequest, interval: 1.sec
+  #timer_event :send_flowstatsrequest, interval: 1.sec
+  timer_event :send_aggregatestatsrequest, interval: 1.sec
 
   delegate :flood_lldp_frames, to: :@topology
   delegate :send_flowstatsrequest, to: :@topology

@@ -28,6 +28,8 @@ class PathInSliceManager < PathManager
     puts "destination_mac : #{packet_in.destination_mac}"
     puts "source_ip_address : #{packet_in.source_ip_address.to_s}"
     puts "destination_ip_address : #{packet_in.destination_ip_address.to_s}"
+    puts "@graph length is #{@graph.get_length}"
+    puts "@missing_graph length is #{@missing_graph.get_length}"
     #puts packet_in.source_ip_address.to_s
     #puts packet_in.source_ip_address.to_s == "192.168.0.1"
     #サーバのIPを見かけたら、macアドレスを保存しておく
@@ -83,7 +85,14 @@ class PathInSliceManager < PathManager
   end
 
   def maybe_create_shortest_path_in_slice(slice_name, packet_in)
-    #puts "maybe_create_shortest_path_in_slice"
+    puts "slice_name is #{slice_name}(#{slice_name.class})"
+    if(slice_name == "slice_a" && @load_table[15] > 20) then
+      @load_flag = true
+    elsif(slice_name == "slice_b" && @load_table[16] > 20) then
+      @load_flag = true
+    else
+      @load_flag = false
+    end
     path = maybe_create_shortest_path(packet_in)
     return unless path
     path.slice = slice_name

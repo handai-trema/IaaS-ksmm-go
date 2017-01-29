@@ -9,6 +9,10 @@ class PathManager < Trema::Controller
     @server_mac = nil
     #欠けているグラフ
     @missing_graph = Graph.new
+    # スイッチの負荷を表すHash
+    @load_table = Hash.new
+    #@graphと@missing_graphの使い分けのためのフラグ
+    @load_flag = false
     logger.info 'Path Manager started.'
   end
 
@@ -23,7 +27,7 @@ class PathManager < Trema::Controller
 
   def aggregate_stats_reply(dpid,message)
     #puts "#0x{dpid} -> #{message.packet_count}"
-    @graph.update_load_table dpid,message.packet_count
+    @load_table[dpid] = message.packet_count
     #puts "--start--"
     #puts message.packet_count
     #puts message.byte_count
@@ -93,9 +97,16 @@ class PathManager < Trema::Controller
     count_end = all_path.size - 1
     index = 0
     for count in 0..count_end do
-      source = all_path[index].source_mac
+      src = all_path[index].source_mac
       dest = all_path[index].destination_mac
-      new_path = @graph.dijkstra(source, dest)
+      slice_name = all_path[index].slice
+      if(slice_name == "slice_a" && @load_table[15] > 20) then
+        new_path = @missing_graph.dijkstra(src, dest)
+      elsif(slice_name == "slice_b" && @load_table[16] > 20) then
+        new_path = @missing_graph.dijkstra(src, dest)
+      else
+        new_path = @graph.dijkstra(src, dest)
+      end
       #puts all_path[index].get_path.to_s
       #puts new_path.to_s
       if all_path[index].get_path.to_s != new_path.to_s then
@@ -116,13 +127,20 @@ class PathManager < Trema::Controller
     killpath = Path.find { |each| each.link?(port_a, port_b) }
     host_pair = []
     killpath.each do |each|
-      host_pair << each.get_packet_in
+      host_pair << [each.get_packet_in, each.slice]
     end
     #puts host_pair.to_s
     Path.find { |each| each.link?(port_a, port_b) }.each(&:destroy)
     # パスの再作成
     host_pair.each do |each|
-      maybe_create_shortest_path(each)
+      if(each[1] == "slice_a" && @load_table[15] > 20) then
+        @load_flag = true
+      elsif(each[1] == "slice_b" && @load_table[16] > 20) then
+        @load_flag = true
+      else
+        @load_flag = false
+      end
+      maybe_create_shortest_path(each[0])
     end
   end
 
@@ -166,22 +184,28 @@ class PathManager < Trema::Controller
     end
     if source_ip[3] > 100 then
       if @server_mac.nil? then
-        source = Mac.new ("00:00:00:00:00:01")
+        src = Mac.new ("00:00:00:00:00:01")
         puts "source rewrited by new mac!!"
       else
-        source = @server_mac
+        src = @server_mac
         puts "source rewrited by saved mac!!"
       end
       #source = "54:53:ed:1c:36:82"
     else
-      source = packet_in.source_mac
+      src = packet_in.source_mac
     end
     #puts "dump!!!!!!!!!!"
     #puts packet_in.destination_mac
     #puts packet_in.destination_mac.class
-    shortest_path =
-      #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
-      @graph.dijkstra(source, dest)
+    if @load_flag then
+      shortest_path =
+        #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
+        @missing_graph.dijkstra(src, dest)
+    else
+      shortest_path =
+        #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
+        @graph.dijkstra(src, dest)
+    end
     return unless shortest_path
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
