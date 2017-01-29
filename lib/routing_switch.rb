@@ -42,7 +42,6 @@ class RoutingSwitch < Trema::Controller
     @path_manager = start_path_manager
     @topology = start_topology
     @path_manager.add_observer @topology
-#ここでアドミンをスライスを追加？
     mac_test = Mac.new("11:11:11:11:11:11")
     puts mac_test.class
     logger.info 'Routing Switch started.'
@@ -56,7 +55,6 @@ class RoutingSwitch < Trema::Controller
   delegate :aggregate_stats_reply, to: :@path_manager
 
   def packet_in(dpid, packet_in)
-#ここでユーザをスライスを追加？
     @topology.packet_in(dpid, packet_in)
     @path_manager.packet_in(dpid, packet_in) unless packet_in.lldp?
   end

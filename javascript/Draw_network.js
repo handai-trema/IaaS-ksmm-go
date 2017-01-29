@@ -242,6 +242,11 @@ function onRadioButtonChange() {
   }
   active_slice = check;
   var target = document.getElementById("output");
+  var oldColor = '#848484';
+  var oldarrow = {to:false, from:false};
+  for(var j in pre_data[0].links){//エッジの色を戻す
+    edges.update([{id:pre_data[0].links[j].id, arrows:{to:{enabled:oldarrow.to}, from:{enabled:oldarrow.from}}, color:{color:oldColor,highlight:oldColor}}]);
+  }
   if (check[0] == true) {//all
     var host_s = {};
     var tmp = [];

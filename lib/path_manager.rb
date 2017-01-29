@@ -242,6 +242,7 @@ class PathManager < Trema::Controller
         @graph.dijkstra(src, dest)
     end
     return unless shortest_path
+#ここで渡す前にパスにコンテナのMACをもどす（shortest_path->shortest_path_in_container
     maybe_send_handler :add_path, shortest_path#可視化用
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
