@@ -203,23 +203,23 @@ class PathManager < Trema::Controller
     end
     if source_ip[3] > 100  && source_ip[3] <= 200 then
       if @server_mac.has_key?(1) then
-        source = @server_mac[1]
+        src = @server_mac[1]
         puts "source rewrited by saved mac!!"
-        p source
+        p src
       else
-        source = Mac.new ("00:00:00:00:00:01")
+        src = Mac.new ("00:00:00:00:00:01")
         puts "source rewrited by new mac!!"
-        p source
+        p src
       end
     elsif source_ip[3] > 200 then
       if @server_mac.has_key?(2) then
-        source = @server_mac[2]
+        src = @server_mac[2]
         puts "souorce rewrited by saved mac!!"
-        p source
+        p src
       else
-        source = Mac.new ("00:00:00:00:00:02")
+        src = Mac.new ("00:00:00:00:00:02")
         puts "source rewrited by new mac!!"
-        p source
+        p src
       end
     else
       src = packet_in.source_mac

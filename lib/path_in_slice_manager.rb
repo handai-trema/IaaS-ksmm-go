@@ -42,8 +42,8 @@ class PathInSliceManager < PathManager
     end
     slice = Slice.find do |each|
       #同じスライスに属しているかを判定
-      #puts each.member?(packet_in.slice_source)
-      #puts each.member?(packet_in.slice_destination(@graph))
+      puts each.member?(packet_in.slice_source)
+      puts each.member?(packet_in.slice_destination(@graph))
       if packet_in.destination_ip_address.to_a[3] <= 100 then
         puts "less 100"
         puts each.member?(packet_in.slice_source)
@@ -58,7 +58,7 @@ class PathInSliceManager < PathManager
           dammy_mac = Mac.new ("00:00:00:00:00:01")
         end
         each.member?(packet_in.slice_source) &&
-          each.member?(packet_in.slice_destination_vm(dammy_mac))
+          each.member?(packet_in.slice_destination_vm(@graph,dammy_mac))
       elsif (packet_in.destination_ip_address.to_a[3] > 200) then
         if @server_mac.has_key?(2) then
           dammy_mac = @server_mac[2]
@@ -66,7 +66,7 @@ class PathInSliceManager < PathManager
           dammy_mac = Mac.new ("00:00:00:00:00:02")
         end
         each.member?(packet_in.slice_source) &&
-          each.member?(packet_in.slice_destination_vm(dammy_mac))
+          each.member?(packet_in.slice_destination_vm(@graph,dammy_mac))
       end
     end
     puts slice

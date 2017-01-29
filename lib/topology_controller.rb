@@ -92,6 +92,7 @@ class TopologyController < Trema::Controller
           end
         end
       end
+      #puts @arp_table
     elsif packet_in.data.is_a? Pio::Arp::Reply
       arp_reply = packet_in.data
       unless @arp_table.include?(arp_reply.sender_protocol_address.to_s) then
@@ -116,6 +117,7 @@ class TopologyController < Trema::Controller
             end
           end
         end
+        #puts @arp_table
         #ARP Replyが来たときにホストを登録する
       #仮想マシンはtopologyに追加しない
 #      unless packet_in.sender_protocol_address.to_a[3] > 100 then
