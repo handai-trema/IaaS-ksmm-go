@@ -34,6 +34,7 @@ class PathManager < Trema::Controller
   def aggregate_stats_reply(dpid,message)
     #puts "#0x{dpid} -> #{message.packet_count}"
     @load_table[dpid] = message.packet_count
+    #負荷の状態が変化したら、パスの張替え。
     #puts "--start--"
     #puts message.packet_count
     #puts message.byte_count
@@ -117,8 +118,10 @@ class PathManager < Trema::Controller
       #puts new_path.to_s
       if all_path[index].get_path.to_s != new_path.to_s then
         packet_in = all_path[index].get_packet_in
+    maybe_send_handler :del_path, all_path[index]#可視化用
         all_path[index].destroy
         Path.create new_path, packet_in
+    maybe_send_handler :add_path, new_path#可視化用
       else
         puts "next index!!"
         index += 1
@@ -141,7 +144,9 @@ class PathManager < Trema::Controller
     #host_pair.each do |each|
     #  maybe_create_shortest_path(each)
     #end
-    maybe_send_handler :del_path, del_path#可視化用
+    del_path.each do |each|
+      maybe_send_handler :del_path, each#可視化用
+    end
     host_pair.each do |each|
       if(each[1] == "slice_a" && @load_table[15] > 20) then
         @load_flag = true

@@ -93,6 +93,7 @@ class Topology
   def maybe_add_path(shortest_path)
     temp = Array.new
     temp << shortest_path[0].to_s
+    #p shortest_path
     shortest_path[1..-2].each_slice(2) do |in_port, out_port|
       temp << out_port.dpid
     end
@@ -105,11 +106,11 @@ class Topology
 
   def maybe_delete_path(delete_path)
     temp = Array.new
-    temp << delete_path[0].to_s
-    delete_path[1..-2].each_slice(2) do |in_port, out_port|
+    temp << delete_path.get_path[0].to_s
+    delete_path.get_path[1..-2].each_slice(2) do |in_port, out_port|
       temp << out_port.dpid
     end
-    temp << delete_path.last.to_s
+    temp << delete_path.get_path.last.to_s
     @paths.delete(temp)
     maybe_send_handler :del_path, delete_path, self
   end

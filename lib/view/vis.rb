@@ -34,7 +34,7 @@ module View
       i = 0
       h_links = host_without_container.values.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
-         tmp[nodes.length+i] = { "id"=> 10000+nodes.length+i, "from"=> each[2], "to"=> 100+i }
+         tmp[links.length+i] = { "id"=> 10000+links.length+i, "from"=> each[2], "to"=> 100+i }
         i += 1
       end
       i = 0
@@ -48,7 +48,7 @@ module View
          server_id = hosts.each_with_object({}) do |server, tmp|
            tmp = server["id"] if server["label"] == each[1].to_s
          end
-         tmp[nodes.length+hosts.length+i] = { "id"=> 10000+nodes.length+hosts.length+i, "from"=> server_id, "to"=> 1000+i }
+         tmp[links.length+h_links.length+i] = { "id"=> 10000+links.length+h_links.length+i, "from"=> server_id, "to"=> 1000+i }
         i += 1
       end
       open(@output, "w") do |io|
