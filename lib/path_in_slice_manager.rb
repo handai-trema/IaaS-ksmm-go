@@ -79,16 +79,14 @@ class PathInSliceManager < PathManager
 #IPでコンテナを判別して、ホストのみをグラフに入れる（コンテナは弾く
   def add_host_or_container(mac_address, ip_address, port, _topology)
     puts "--add_host_or_container:" + mac_address + "--"
-############################################
-#	         ホストかコンテナか
-############################################
-#	         ホストの場合
-    @graph.add_link mac_address, port
-############################################
-#	         コンテナの場合
-#    container = mac_address, server_mac_address
-#    maybe_send_handler :add_container, container#トポロジ追加用
-############################################
+#ホストの場合
+    if packet_in.destination_ip_address.to_a[3] <= 100 then
+      @graph.add_link mac_address, port
+    else
+#コンテナの場合
+      container = [mac_address, server_mac_address]
+      maybe_send_handler :add_container, container#トポロジ追加用
+    end
   end
 
   private
