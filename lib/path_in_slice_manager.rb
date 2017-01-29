@@ -26,13 +26,15 @@ class PathInSliceManager < PathManager
     return unless packet_in.data.is_a? Parser::IPv4Packet
     puts ""#綺麗に表示するためだけの空行
     puts "PathInSliceManager::packet_in(_dpid, packet_in)"
-    puts "--packet_in information(IPv4Packet)"
-    puts " +dpid: #{packet_in.dpid}"
-    puts " +in_port: #{packet_in.in_port}"
-    puts " +source_mac: #{packet_in.source_mac}"
-    puts " +destination_mac: #{packet_in.destination_mac}"
-    puts " +source_ip_address: #{packet_in.source_ip_address.to_s}"
-    puts " +destination_ip_address: #{packet_in.destination_ip_address.to_s}"
+    puts "  = IPv4 packet_in is received."
+    puts "  +packet_in information(IPv4Packet)"
+    puts "  | +dpid: #{packet_in.dpid}"
+    puts "  | +in_port: #{packet_in.in_port}"
+    puts "  | +Source_ip_address: #{packet_in.source_ip_address.to_s}"
+    puts "  | +Source_mac: #{packet_in.source_mac}"
+    puts "  |          ↓"
+    puts "  | +Destination_ip_address: #{packet_in.destination_ip_address.to_s}"
+    puts "  | +Destination_mac: #{packet_in.destination_mac}"
 
     #puts packet_in.source_ip_address.to_a[0].class
     return unless packet_in.source_ip_address.to_a[0] == 192
@@ -46,31 +48,29 @@ class PathInSliceManager < PathManager
 
     #サーバ経由のIPを見かけたら、dpidとportを保存しておく
     ipaddr = packet_in.source_ip_address.to_a[3]
-    puts "ipaddr: #{ipaddr}"
     if ipaddr == 10 || (100 < ipaddr && ipaddr <= 200) then
       @server_dpid[1] = packet_in.dpid
       @server_port[1] = packet_in.in_port
-      puts ipaddr
-      puts "--Update Server1's dpid and port--"
+      puts "  = Update Server1's dpid and port"
     elsif ipaddr == 20 || 200 < ipaddr then
       @server_dpid[2] = packet_in.dpid
       @server_port[2] = packet_in.in_port
-      puts "--Update Server2's dpid and port--"
+      puts "  = Update Server2's dpid and port"
     end
 
     if ipaddr == 10 then
       @server_mac[1] = packet_in.source_mac
-      puts "--Update Server1's mac #{@server_mac[1]}--"
+      puts "  = Update Server1's mac #{@server_mac[1]}"
     elsif ipaddr == 20 then
       @server_mac[2] = packet_in.source_mac
-      puts "--Update Server2's mac #{@server_mac[2]}--"
+      puts "  = Update Server2's mac #{@server_mac[2]}"
     end
 
 
 
     slice = Slice.find do |each|
       #同じスライスに属しているかを判定
-      puts "--slice: #{each}"
+      puts "--slice #{each}?"
       if packet_in.destination_ip_address.to_a[3] <= 100 then
         #物理マシンの時
         puts " --dest: PYHSICAL machine (ip: .0~.100)"
@@ -122,14 +122,7 @@ class PathInSliceManager < PathManager
 
 #IPでコンテナを判別して、ホストのみをグラフに入れる（コンテナは弾く
   def add_host_or_container(mac_address, ip_address, port, _topology)
-    puts ""#綺麗に表示するためだけの空行
-    print "PathInSliceManager::add_host_or_container("
-    print mac_address
-    print ", "
-    print ip_address
-    print ", "
-    print port
-    puts ", _topology)"
+    puts "PathInSliceManager::add_host_or_container(#{mac_address}, #{ip_address}, #{port})"
 ############################################
 #	         ホストかコンテナか
 ############################################
@@ -154,15 +147,15 @@ class PathInSliceManager < PathManager
     #このメソッドのpacket_inはARPパケットのみ
     puts ""#綺麗に表示するためだけの空行
     puts "PathInSliceManager::packet_in(_dpid, packet_in)::add_slice_member?(packet_in)"
-    puts "  ==ARP packet is received."
-    puts "  --packet_in information(ARP)"
+    puts "  =ARP packet_in is received."
+    puts "  +packet_in information(ARP)"
     if arp_packet.is_a? Pio::Arp::Request
-      puts "    +ARP      type     : REQUEST"
+      puts "  | +ARP      type     : REQUEST"
     else
-      puts "    +ARP      type     : REPLY"
+      puts "  | +ARP      type     : REPLY"
     end
-    puts "    +ARP packet is from: #{arp_packet.sender_protocol_address.to_s}, #{arp_packet.source_mac}"
-    puts "    +ARP packet is  to : #{arp_packet.target_protocol_address.to_s}"
+    puts "  | +ARP packet is from: #{arp_packet.sender_protocol_address.to_s}, #{arp_packet.source_mac}"
+    puts "  | +ARP packet is  to : #{arp_packet.target_protocol_address.to_s}"
 
 
     #もし，ARPがserver間，server<=>adminなら，serversスライスに追加
@@ -211,7 +204,7 @@ class PathInSliceManager < PathManager
       if userIP == targetIP then
         tmp_slice = find_container_slice(userIP)
         unless tmp_slice.member?(packet_in.slice_source)
-          puts "===> add container(#{arp_packet.sender_protocol_address.to_s})'s' mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
+          puts "===> add container(#{arp_packet.sender_protocol_address.to_s})'s mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
           tmp_slice.add_mac_address(arp_packet.source_mac,
                                     dpid: packet_in.dpid, port_no: packet_in.in_port)
         end
@@ -224,7 +217,7 @@ class PathInSliceManager < PathManager
       if userIP == senderIP then
         tmp_slice = find_container_slice(userIP)
         unless tmp_slice.member?(packet_in.slice_source)
-          puts "===> add user    (#{arp_packet.sender_protocol_address.to_s})'s' mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
+          puts "===> add user    (#{arp_packet.sender_protocol_address.to_s})'s mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
           tmp_slice.add_mac_address(arp_packet.source_mac,
                                     dpid: packet_in.dpid, port_no: packet_in.in_port)
         end
@@ -236,7 +229,7 @@ class PathInSliceManager < PathManager
       if userIP == targetIP then
         tmp_slice = find_container_slice(userIP)
         unless tmp_slice.member?(packet_in.slice_source)
-          puts "===> add container(#{arp_packet.sender_protocol_address.to_s})'s' mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
+          puts "===> add container(#{arp_packet.sender_protocol_address.to_s})'s mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
           tmp_slice.add_mac_address(arp_packet.source_mac,
                                     dpid: packet_in.dpid, port_no: packet_in.in_port)
         end
@@ -248,7 +241,7 @@ class PathInSliceManager < PathManager
       if userIP == senderIP then
         tmp_slice = find_container_slice(userIP)
         unless tmp_slice.member?(packet_in.slice_source)
-          puts "===> add user    (#{arp_packet.sender_protocol_address.to_s})'s' mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
+          puts "===> add user    (#{arp_packet.sender_protocol_address.to_s})'s mac: \"#{arp_packet.source_mac}\" to slice: \"#{tmp_slice}\" <==="
           tmp_slice.add_mac_address(arp_packet.source_mac,
                                     dpid: packet_in.dpid, port_no: packet_in.in_port)
         end

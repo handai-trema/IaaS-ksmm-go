@@ -195,3 +195,7 @@ I, [2017-01-29T23:36:51.498705 #29980]  INFO -- : vizJs mode, output = ./tmp/top
 I, [2017-01-29T23:36:51.498807 #29980]  INFO -- : Topology started (vizJs mode, output = ./tmp/topology.json).
 I, [2017-01-29T23:37:36.490394 #31683]  INFO -- : vizJs mode, output = ./tmp/topology.json
 I, [2017-01-29T23:37:36.490467 #31683]  INFO -- : Topology started (vizJs mode, output = ./tmp/topology.json).
+I, [2017-01-29T23:43:28.874922 #1288]  INFO -- : vizJs mode, output = ./tmp/topology.json
+I, [2017-01-29T23:43:28.875135 #1288]  INFO -- : Topology started (vizJs mode, output = ./tmp/topology.json).
+I, [2017-01-30T00:08:36.018253 #3582]  INFO -- : vizJs mode, output = ./tmp/topology.json
+I, [2017-01-30T00:08:36.018325 #3582]  INFO -- : Topology started (vizJs mode, output = ./tmp/topology.json).
