@@ -125,10 +125,15 @@ class PathInSliceManager < PathManager
   def add_host_or_container(mac_address, ip_address, port, _topology)
     puts "--add_host_or_container:" + mac_address + "--"
 #ホストの場合
-    if packet_in.destination_ip_address.to_a[3] <= 100 then
+    if ip_address.to_a[3] < 100 then
       @graph.add_link mac_address, port
     else
 #コンテナの場合
+      if ip_address.to_a[3] < 200 then
+        server_mac_address = Mac.new("00:00:00:00:00:01")
+      else
+        server_mac_address = Mac.new("00:00:00:00:00:02")
+      end
       container = [mac_address, server_mac_address]
       maybe_send_handler :add_container, container#トポロジ追加用
     end
