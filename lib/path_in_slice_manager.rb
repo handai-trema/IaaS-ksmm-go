@@ -94,6 +94,11 @@ class PathInSliceManager < PathManager
       @missing_graph.add_link mac_address, port
     else
 #コンテナの場合
+      if ip_address.to_a[3] > 200 then
+        server_mac_address = @server_mac[2]
+      else
+        server_mac_address = @server_mac[1]
+      end
       container = [mac_address, server_mac_address]
       maybe_send_handler :add_container, container#トポロジ追加用
     end

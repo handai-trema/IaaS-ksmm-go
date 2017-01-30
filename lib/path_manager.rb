@@ -18,7 +18,7 @@ class PathManager < Trema::Controller
     # スイッチの負荷を表すHash
     @load_table = Hash.new
     #@graphと@missing_graphの使い分けのためのフラグ
-    @load_flag = {"slice_a" => false , "slice_52" => false}
+    @load_flag = {"slice_51" => false , "slice_52" => false}
     #maybe_create_shortest_pathでパスを生成する時の、スライスの確認用
     @path_slice_name = ""
     logger.info 'Path Manager started.'
@@ -42,7 +42,7 @@ class PathManager < Trema::Controller
       @load_table[dpid] = message.packet_count
     end
     if dpid == 15 then
-      slice_name = "slice_a"
+      slice_name = "slice_51"
     elsif dpid == 16 then
       slice_name = "slice_52"
     else
