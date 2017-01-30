@@ -84,8 +84,8 @@ class PathInSliceManager < PathManager
       elsif (packet_in.destination_ip_address.to_a[3] >= 100 &&
              packet_in.destination_ip_address.to_a[3] <= 200) then
          unless @server_port.has_key?(1) && @server_dpid.has_key?(1) then
-          @server_dpid[1] = 0xf #型適当．バグる気がする
-          @server_port[1] = BinData::Uint16be.new(:value => 16) #型適当．バグる気がする
+          @server_dpid[1] = 0xf #数値適当．バグる気がする
+          @server_port[1] = BinData::Uint16be.new(:value => 45) #数値適当．バグる気がする
          end
 
         puts " --dest: CONTAINER on server1 (ip: .101~.200)"
@@ -93,11 +93,11 @@ class PathInSliceManager < PathManager
         puts "  +dest   is member? : #{each.member?({ dpid: @server_dpid[1],
                                                       port_no: @server_port[1], mac: packet_in.source_mac })}"
         each.member?(packet_in.slice_source) &&
-          each.member?({ dpid: @server_dpid[1], port_no: @server_port[1], mac: packet_in.source_mac })
+          each.member?({ dpid: @server_dpid[1], port_no: @server_port[1], mac: packet_in.destination_mac })
       elsif (packet_in.destination_ip_address.to_a[3] > 200) then
         unless @server_port.has_key?(2) && @server_dpid.has_key?(2) then
-         @server_dpid[2] = 0x2 #型適当．バグる気がする
-         @server_port[2] = 2 #型適当．バグる気がする
+         @server_dpid[2] = 0x10 #数値適当．バグる気がする
+         @server_port[2] = BinData::Uint16be.new(:value => 47) #数値適当．バグる気がする
         end
 
         puts " --dest: CONTAINER on server2 (ip: .201~.255)"
@@ -105,7 +105,7 @@ class PathInSliceManager < PathManager
         puts "  +dest   is member? : #{each.member?({ dpid: @server_dpid[2],
                                                       port_no: @server_port[2], mac: packet_in.source_mac })}"
         each.member?(packet_in.slice_source) &&
-          each.member?({ dpid: @server_dpid[2], port_no: @server_port[2], mac: packet_in.source_mac })
+          each.member?({ dpid: @server_dpid[2], port_no: @server_port[2], mac: packet_in.destination_mac })
       end
     end
 
