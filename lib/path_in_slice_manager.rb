@@ -88,8 +88,10 @@ class PathInSliceManager < PathManager
   def add_host_or_container(mac_address, ip_address, port, _topology)
     puts "--add_host_or_container:" + mac_address + "--"
 #ホストの場合
-    if packet_in.destination_ip_address.to_a[3] <= 100 then
+    #if packet_in.destination_ip_address.to_a[3] <= 100 then
+    if ip_address.to_a[3] <= 100 then
       @graph.add_link mac_address, port
+      @missing_graph.add_link mac_address, port
     else
 #コンテナの場合
       container = [mac_address, server_mac_address]
@@ -109,13 +111,7 @@ class PathInSliceManager < PathManager
 
   def maybe_create_shortest_path_in_slice(slice_name, packet_in)
     puts "slice_name is #{slice_name}(#{slice_name.class})"
-    if(slice_name == "slice_a" && @load_table[15] > 20) then
-      @load_flag = true
-    elsif(slice_name == "slice_b" && @load_table[16] > 20) then
-      @load_flag = true
-    else
-      @load_flag = false
-    end
+    @path_slice_name = slice_name
     path = maybe_create_shortest_path(packet_in)
     return unless path
     path.slice = slice_name

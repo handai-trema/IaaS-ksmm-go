@@ -18,7 +18,9 @@ class PathManager < Trema::Controller
     # スイッチの負荷を表すHash
     @load_table = Hash.new
     #@graphと@missing_graphの使い分けのためのフラグ
-    @load_flag = false
+    @load_flag = {"slice_a" => false , "slice_52" => false}
+    #maybe_create_shortest_pathでパスを生成する時の、スライスの確認用
+    @path_slice_name = ""
     logger.info 'Path Manager started.'
   end
 
@@ -33,7 +35,33 @@ class PathManager < Trema::Controller
 
   def aggregate_stats_reply(dpid,message)
     #puts "#0x{dpid} -> #{message.packet_count}"
-    @load_table[dpid] = message.packet_count
+    threshold = 20
+    if @load_table.has_key?(dpid) then
+      @load_table[dpid] = message.packet_count - @load_table[dpid]
+    else
+      @load_table[dpid] = message.packet_count
+    end
+    if dpid == 15 then
+      slice_name = "slice_a"
+    elsif dpid == 16 then
+      slice_name = "slice_52"
+    else
+      return
+    end
+
+    prev_flag = @load_flag[slice_name]
+    #puts "@load_table[#{dpid}] = #{@load_table[dpid]}"
+    if @load_table[dpid] > threshold then
+      @load_flag[slice_name] = true
+    else
+      @load_flag[slice_name] = false
+    end
+    if @load_flag[slice_name] != prev_flag then
+      #puts "@load_flag[#{slice_name}] is changed : #{prev_flag} => #{@load_flag[slice_name]}"
+      update_path_by_load_change slice_name,@load_flag[slice_name]
+      @load_table[dpid] = 0
+    end
+
     #負荷の状態が変化したら、パスの張替え。
     #puts "--start--"
     #puts message.packet_count
@@ -99,6 +127,35 @@ class PathManager < Trema::Controller
     update_path_by_add
   end
 
+  def update_path_by_load_change(target_slice,flag)
+    all_path = Path.get_all_path
+    count_end = all_path.size - 1
+    index = 0
+    for count in 0..count_end do
+      src = all_path[index].source_mac
+      dest = all_path[index].destination_mac
+      slice_name = all_path[index].slice
+      if(slice_name == target_slice) then
+        if flag == true then
+          new_path = @missing_graph.dijkstra(src, dest)
+        else
+          new_path = @graph.dijkstra(src, dest)
+        end
+      else
+        index += 1
+        next
+      end
+      #puts all_path[index].get_path.to_s
+      #puts new_path.to_s
+      packet_in = all_path[index].get_packet_in
+      maybe_send_handler :del_path, all_path[index]#可視化用
+      all_path[index].destroy
+      created_path = Path.create new_path, packet_in
+      created_path.slice = target_slice
+      maybe_send_handler :add_path, new_path#可視化用
+    end
+  end
+
   def update_path_by_add
     all_path = Path.get_all_path
     count_end = all_path.size - 1
@@ -107,9 +164,7 @@ class PathManager < Trema::Controller
       src = all_path[index].source_mac
       dest = all_path[index].destination_mac
       slice_name = all_path[index].slice
-      if(slice_name == "slice_a" && @load_table[15] > 20) then
-        new_path = @missing_graph.dijkstra(src, dest)
-      elsif(slice_name == "slice_b" && @load_table[16] > 20) then
+      if (@load_flag.has_key?(slice_name) && @load_flag[slice_name]) then
         new_path = @missing_graph.dijkstra(src, dest)
       else
         new_path = @graph.dijkstra(src, dest)
@@ -118,10 +173,11 @@ class PathManager < Trema::Controller
       #puts new_path.to_s
       if all_path[index].get_path.to_s != new_path.to_s then
         packet_in = all_path[index].get_packet_in
-    maybe_send_handler :del_path, all_path[index]#可視化用
+        maybe_send_handler :del_path, all_path[index]#可視化用
         all_path[index].destroy
-        Path.create new_path, packet_in
-    maybe_send_handler :add_path, new_path#可視化用
+        created_path = Path.create new_path, packet_in
+        created_path.slice = slice_name
+        maybe_send_handler :add_path, new_path#可視化用
       else
         puts "next index!!"
         index += 1
@@ -148,14 +204,9 @@ class PathManager < Trema::Controller
       maybe_send_handler :del_path, each#可視化用
     end
     host_pair.each do |each|
-      if(each[1] == "slice_a" && @load_table[15] > 20) then
-        @load_flag = true
-      elsif(each[1] == "slice_b" && @load_table[16] > 20) then
-        @load_flag = true
-      else
-        @load_flag = false
-      end
-      maybe_create_shortest_path(each[0])
+      @path_slice_name = each[1]
+      created_path = maybe_create_shortest_path(each[0])
+      created_path.slice = each[1]
     end
   end
 
@@ -232,7 +283,7 @@ class PathManager < Trema::Controller
     #puts "dump!!!!!!!!!!"
     #puts packet_in.destination_mac
     #puts packet_in.destination_mac.class
-    if @load_flag then
+    if (@load_flag.has_key?(@path_slice_name) && @load_flag[@path_slice_name]) then
       shortest_path =
         #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
         @missing_graph.dijkstra(src, dest)
