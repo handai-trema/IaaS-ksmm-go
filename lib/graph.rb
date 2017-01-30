@@ -95,14 +95,12 @@ class Graph
     #@graph.each_value do |value|
     #  puts value.to_s
     #end
-    puts "enter dijkstra!!"
-    puts "source mac in dijkstra is " + source_mac
-    puts "destination mac in dijkstra is " + destination_mac
+    puts "  Graph::dijkstra(#{source_mac}, #{destination_mac})"
     #puts @graph[source_mac]
     return if @graph[destination_mac].empty?
-    puts "find destination_mac in dijkstra"
+    puts "  +Sucessfully find destination_mac in dijkstra"
     return if @graph[source_mac].empty?
-    puts "find source_mac in dijkstra"
+    puts "  +Suceccfully find source_mac in dijkstra"
     #puts "source mac is " + source_mac
     #puts "destination mac is " + destination_mac
     #@graph.each do |key,val|

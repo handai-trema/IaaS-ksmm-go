@@ -12,6 +12,8 @@ class PathManager < Trema::Controller
   def start
     @observers = []
     @graph = Graph.new
+    @server_dpid = {}
+    @server_port = {}
     @server_mac = {}
     #欠けているグラフ
     @missing_graph = Graph.new
@@ -160,7 +162,11 @@ class PathManager < Trema::Controller
   end
 
   def add_host(mac_address, port, _topology)
-    puts "--add_host:" + mac_address + "--"
+    print "PathManager::add_host("
+    print mac_address
+    print ", "
+    print port
+    puts ", _topology)"
     @graph.add_link mac_address, port
     @missing_graph.add_link mac_address, port unless port.dpid == 6
   end
@@ -169,7 +175,7 @@ class PathManager < Trema::Controller
 
   # This method smells of :reek:FeatureEnvy but ignores them
   def maybe_create_shortest_path(packet_in)
-    puts "enter maybe_create_shortest_path in path_manager"
+    puts "PathManager::maybe_create_shortest_path(packet_in)"
 #    unless packet_in.data.is_a? Parser::IPv4Packet then return end
 #    #puts packet_in.destination_ip_address.to_a
 #    if packet_in.source_mac == Mac.new("54:53:ed:1c:36:82") then
@@ -179,29 +185,25 @@ class PathManager < Trema::Controller
 #      @server_mac = packet_in.destination_mac
 #      puts "save server_mac!!"
 #    end
-    p packet_in.source_mac
-    p packet_in.destination_mac
+    puts " +path-src :#{packet_in.source_mac}"
+    puts " +path-dest:#{packet_in.destination_mac}"
     destination_ip = packet_in.destination_ip_address.to_a
     source_ip = packet_in.source_ip_address.to_a
     if destination_ip[3] > 100  && destination_ip[3] <= 200 then
       if @server_mac.has_key?(1) then
         dest = @server_mac[1]
-        puts "dest rewrited by saved mac!!"
-        p dest
+        puts "  +dest rewrited by saved mac(#{dest})!!"
       else
         dest = Mac.new ("00:00:00:00:00:01")
-        puts "dest rewrited by new mac!!"
-        p dest
+        puts "  +dest rewrited by new mac#{dest}!!"
       end
     elsif destination_ip[3] > 200 then
       if @server_mac.has_key?(2) then
         dest = @server_mac[2]
-        puts "dest rewrited by saved mac!!"
-        p dest
+        puts "  +dest rewrited by saved mac(#{dest})!!"
       else
         dest = Mac.new ("00:00:00:00:00:02")
-        puts "dest rewrited by new mac!!"
-        p dest
+        puts "  +dest rewrited by new mac(#{dest})!!"
       end
     else
       dest = packet_in.destination_mac
@@ -209,45 +211,30 @@ class PathManager < Trema::Controller
     if source_ip[3] > 100  && source_ip[3] <= 200 then
       if @server_mac.has_key?(1) then
         src = @server_mac[1]
-        puts "source rewrited by saved mac!!"
-        p src
+        puts "  +source rewrited by saved mac(#{src})!!"
       else
         src = Mac.new ("00:00:00:00:00:01")
-        puts "source rewrited by new mac!!"
-        p src
+        puts "  +source rewrited by new mac(#{src})!!"
       end
     elsif source_ip[3] > 200 then
       if @server_mac.has_key?(2) then
         src = @server_mac[2]
-        puts "souorce rewrited by saved mac!!"
-        p src
+        puts "  +souorce rewrited by saved mac(#{src})!!"
       else
         src = Mac.new ("00:00:00:00:00:02")
-        puts "source rewrited by new mac!!"
-        p src
+        puts "  +source rewrited by new mac(#{src})!!"
       end
     else
       src = packet_in.source_mac
     end
-    #puts "dump!!!!!!!!!!"
-    #puts packet_in.destination_mac
-    #puts packet_in.destination_mac.class
-    if @load_flag then
-      shortest_path =
-        #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
-        @missing_graph.dijkstra(src, dest)
-    else
-      shortest_path =
-        #@graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
-        @graph.dijkstra(src, dest)
-    end
+
+    shortest_path =  @graph.dijkstra(src, dest)
     return unless shortest_path
 #ここで渡す前にパスにコンテナのMACをもどす（shortest_path->shortest_path_in_container
     maybe_send_handler :add_path, shortest_path#可視化用
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
 #    end
-    #puts "パス情報"
     #puts shortest_path.class
     Path.create shortest_path, packet_in
   end
