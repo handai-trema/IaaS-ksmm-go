@@ -43,12 +43,24 @@ module View
         i += 1
       end
       i = 0
+      server_id = hosts.each_with_object({}) do |each, tmp|
+        tmp[0] = [] if i==0
+        tmp[1] = [] if i==0
+        tmp[0] = each.id if each[1].label == "00:00:00:00:00:01"
+        tmp[1] = each.id if each[1].label == "00:00:00:00:00:02"
+        i += 1
+      end
+      i = 0
       c_links = topology.containers.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
-         server_id = hosts.each_with_object({}) do |server, tmp|
-           tmp = server["id"] if server["label"] == each[1].to_s
-         end
-         tmp[nodes.length+hosts.length+i] = { "id"=> 10000+nodes.length+hosts.length+i, "from"=> server_id, "to"=> 1000+i }
+#         server_id = hosts.each_with_object({}) do |server, tmp|
+#           tmp = server["id"] if server["label"] == each[1].to_s
+#         end
+        if each[1].to_s == "00:00:00:00:00:01"
+        tmp[nodes.length+hosts.length+i] = { "id"=> 10000+nodes.length+hosts.length+i, "from"=> server_id[0], "to"=> 1000+i }
+        else
+        tmp[nodes.length+hosts.length+i] = { "id"=> 10000+nodes.length+hosts.length+i, "from"=> server_id[1], "to"=> 1000+i }
+        end
         i += 1
       end
       open(@output, "w") do |io|
