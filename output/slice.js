@@ -1,1 +1,1 @@
-nodes.push({id: 196447961000845, label: 'b2:ab:1a:ee:ab:8d', font: {size:15, color:'yellow', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});nodes.push({id: 47214752816356, label: '2a:f1:0a:91:dc:e4', font: {size:15, color:'yellow', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});
+nodes.push({id: 8796753715864, label: '08:00:27:61:62:98', font: {size:15, color:'green', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});nodes.push({id: 1, label: '00:00:00:00:00:01', font: {size:15, color:'green', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});

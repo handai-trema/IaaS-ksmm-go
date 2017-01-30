@@ -24,6 +24,17 @@ class PathInSliceManager < PathManager
 
     #puts "packet_in_slice_manager!!"
     return unless packet_in.data.is_a? Parser::IPv4Packet
+
+    #puts packet_in.source_ip_address.to_a[0].class
+    return unless packet_in.source_ip_address.to_a[0] == 192
+    return if packet_in.destination_ip_address.to_a[0] == 224
+    return if packet_in.destination_ip_address.to_a[0] == 172
+    return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] > 100)
+    return if (packet_in.source_ip_address.to_s == "192.168.10.10" && packet_in.destination_ip_address.to_a[3] > 100)
+    return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_s == "192.168.10.10")
+    #puts packet_in.source_ip_address.to_s
+    #puts packet_in.source_ip_address.to_s == "192.168.0.1"
+
     puts ""#綺麗に表示するためだけの空行
     puts "PathInSliceManager::packet_in(_dpid, packet_in)"
     puts "  = IPv4 packet_in is received."
@@ -35,16 +46,6 @@ class PathInSliceManager < PathManager
     puts "  |          ↓"
     puts "  | +Destination_ip_address: #{packet_in.destination_ip_address.to_s}"
     puts "  | +Destination_mac: #{packet_in.destination_mac}"
-
-    #puts packet_in.source_ip_address.to_a[0].class
-    return unless packet_in.source_ip_address.to_a[0] == 192
-    return if packet_in.destination_ip_address.to_a[0] == 224
-    return if packet_in.destination_ip_address.to_a[0] == 172
-    return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] > 100)
-    return if (packet_in.source_ip_address.to_s == "192.168.10.10" && packet_in.destination_ip_address.to_a[3] > 100)
-    return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_s == "192.168.10.10")
-    #puts packet_in.source_ip_address.to_s
-    #puts packet_in.source_ip_address.to_s == "192.168.0.1"
 
     #サーバ経由のIPを見かけたら、dpidとportを保存しておく
     ipaddr = packet_in.source_ip_address.to_a[3]

@@ -62,21 +62,21 @@ class TopologyController < Trema::Controller
         #arp_table[arp_request.sender_protocol_address.to_s] = packet_in.source_mac
         @arp_table.store(arp_request.sender_protocol_address.to_s, packet_in.source_mac)
       end
-      if @arp_table.include?(arp_request.target_protocol_address.to_s) then
-        #puts "ArpTable include src_IP"
-        puts "send_packet_out is called(1)"
-        send_packet_out(
-          dpid,
-          raw_data: Arp::Reply.new(
-            destination_mac: arp_request.source_mac,
-            source_mac:@arp_table[arp_request.target_protocol_address.to_s],
-            sender_protocol_address: arp_request.target_protocol_address,
-            target_protocol_address: arp_request.sender_protocol_address
-          ).to_binary,
-          actions: SendOutPort.new(packet_in.in_port)
-        )
-      else
-        puts "ArpTable does NOT include src_IP"
+      # if @arp_table.include?(arp_request.target_protocol_address.to_s) then
+      #   puts "ArpTable include src_IP"
+      #   puts "send_packet_out is called(1)"
+      #   send_packet_out(
+      #     dpid,
+      #     raw_data: Arp::Reply.new(
+      #       destination_mac: arp_request.source_mac,
+      #       source_mac:@arp_table[arp_request.target_protocol_address.to_s],
+      #       sender_protocol_address: arp_request.target_protocol_address,
+      #       target_protocol_address: arp_request.sender_protocol_address
+      #     ).to_binary,
+      #     actions: SendOutPort.new(packet_in.in_port)
+      #   )
+      # else
+        #puts "ArpTable does NOT include src_IP"
         @topology.ports.each do |dpid,ports|
 
           ports.each do |port|
@@ -97,7 +97,7 @@ class TopologyController < Trema::Controller
             end
           end
         end
-      end
+      # end
     elsif packet_in.data.is_a? Pio::Arp::Reply
       #puts "TopologyController handle ARP REPLY"
       arp_reply = packet_in.data
