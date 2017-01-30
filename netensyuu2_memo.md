@@ -67,6 +67,8 @@
 * ブリッジ設定の確認
  * `brctl show`　:ブリッジを確認
  * `brctl showmacs <ブリッジ名>`　:ブリッジにつながってるmacアドレス
+* arpテーブル
+ * `sudo arp -d <IPアドレス>`
 
 ### docker関係
 * dockerプロセスの確認

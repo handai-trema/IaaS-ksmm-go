@@ -20,8 +20,12 @@ class RoutingSwitch < Trema::Controller
   end
 
   timer_event :flood_lldp_frames, interval: 1.sec
+  #timer_event :send_flowstatsrequest, interval: 1.sec
+  timer_event :send_aggregatestatsrequest, interval: 1.sec
 
   delegate :flood_lldp_frames, to: :@topology
+  delegate :send_flowstatsrequest, to: :@topology
+  delegate :send_aggregatestatsrequest, to: :@topology
 
   def slice
     fail 'Slicing is disabled.' unless @options.slicing
@@ -47,6 +51,8 @@ class RoutingSwitch < Trema::Controller
   delegate :features_reply, to: :@topology
   delegate :switch_disconnected, to: :@topology
   delegate :port_modify, to: :@topology
+  delegate :flow_stats_reply, to: :@path_manager
+  delegate :aggregate_stats_reply, to: :@path_manager
 
   def packet_in(dpid, packet_in)
     @topology.packet_in(dpid, packet_in)

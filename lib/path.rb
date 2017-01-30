@@ -18,6 +18,11 @@ class Path < Trema::Controller
     all.select { |each| block.call(each) }
   end
 
+  def self.get_all_path
+    #puts all.class
+    all
+  end
+
   attr_reader :slice
 
   def slice=(name)
@@ -70,6 +75,9 @@ class Path < Trema::Controller
     @packet_in
   end
 
+  def get_path
+    @full_path
+  end
 
   private
 

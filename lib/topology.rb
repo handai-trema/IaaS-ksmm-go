@@ -78,7 +78,16 @@ class Topology
     mac_address, ip_address, dpid, port_no = *host_or_container
     return if @hosts_and_containers.include?(host_or_container) || ip_address == nil
     @hosts_and_containers << host_or_container
-    puts ip_address.to_s + " is added in topology"
+    #puts ip_address.to_s + " is added in topology"
+    print "Topology::maybe_add_host_or_container("
+    print mac_address
+    print ", "
+    print ip_address
+    print ", dpid:"
+    print dpid
+    print ", port_no:"
+    print port_no
+    puts  ")"
     maybe_send_handler :add_host_or_container, mac_address, ip_address, Port.new(dpid, port_no), self
   end
 
@@ -87,12 +96,13 @@ class Topology
     container_mac_address, server_mac = *container
     @containers << container
     puts container_mac_address.to_s + " is added in topology"
-    maybe_send_handler :add_container, mac_address, self#Viewへおくる
+    maybe_send_handler :add_container, container_mac_address, self#Viewへおくる
   end
 
   def maybe_add_path(shortest_path)
     temp = Array.new
     temp << shortest_path[0].to_s
+    #p shortest_path
     shortest_path[1..-2].each_slice(2) do |in_port, out_port|
       temp << out_port.dpid
     end
@@ -105,11 +115,11 @@ class Topology
 
   def maybe_delete_path(delete_path)
     temp = Array.new
-    temp << delete_path[0].to_s
-    delete_path[1..-2].each_slice(2) do |in_port, out_port|
+    temp << delete_path.get_path[0].to_s
+    delete_path.get_path[1..-2].each_slice(2) do |in_port, out_port|
       temp << out_port.dpid
     end
-    temp << delete_path.last.to_s
+    temp << delete_path.get_path.last.to_s
     @paths.delete(temp)
     maybe_send_handler :del_path, delete_path, self
   end

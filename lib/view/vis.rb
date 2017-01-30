@@ -34,7 +34,7 @@ module View
       i = 0
       h_links = host_without_container.values.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
-         tmp[nodes.length+i] = { "id"=> 10000+nodes.length+i, "from"=> each[2], "to"=> 100+i }
+         tmp[links.length+i] = { "id"=> 10000+links.length+i, "from"=> each[2], "to"=> 100+i }
         i += 1
       end
       i = 0
@@ -79,7 +79,7 @@ module View
     def check_container(mac_address, containers)
       result = false
       for container in containers do
-        result = true if each[0].to_s == mac_address.to_s
+        result = true if container[0].to_s == mac_address.to_s
       end
       return result
     end
