@@ -96,7 +96,7 @@ class Topology
     container_mac_address, server_mac = *container
     @containers << container
     puts container_mac_address.to_s + " is added in topology"
-    maybe_send_handler :add_container, mac_address, self#Viewへおくる
+    maybe_send_handler :add_container, container_mac_address, self#Viewへおくる
   end
 
   def maybe_add_path(shortest_path)

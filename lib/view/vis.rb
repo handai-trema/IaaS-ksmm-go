@@ -46,9 +46,9 @@ module View
       c_links = topology.containers.each_with_object({}) do |each, tmp|
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }
          server_id = hosts.each_with_object({}) do |server, tmp|
-           tmp = server["id"] if server["label"] == each[1].to_s
+           #tmp = server["id"] if server["label"] == each[1].to_s
          end
-         tmp[links.length+h_links.length+i] = { "id"=> 10000+links.length+h_links.length+i, "from"=> server_id, "to"=> 1000+i }
+         #tmp[links.length+h_links.length+i] = { "id"=> 10000+links.length+h_links.length+i, "from"=> server_id, "to"=> 1000+i }
         i += 1
       end
       open(@output, "w") do |io|
@@ -67,7 +67,7 @@ module View
     def check_container(mac_address, containers)
       result = false
       for container in containers do
-        result = true if each[0].to_s == mac_address.to_s
+        result = true if container[0].to_s == mac_address.to_s
       end
       return result
     end

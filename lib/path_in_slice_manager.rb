@@ -27,8 +27,8 @@ class PathInSliceManager < PathManager
 
     #puts packet_in.source_ip_address.to_a[0].class
     return unless packet_in.source_ip_address.to_a[0] == 192
-    return if packet_in.destination_ip_address.to_a[0] == 224
-    return if packet_in.destination_ip_address.to_a[0] == 172
+    return unless packet_in.destination_ip_address.to_a[0] == 192
+    return if packet_in.destination_ip_address.to_a[3] == 255
     return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_a[3] > 100)
     return if (packet_in.source_ip_address.to_s == "192.168.10.10" && packet_in.destination_ip_address.to_a[3] > 100)
     return if (packet_in.source_ip_address.to_a[3] > 100 && packet_in.destination_ip_address.to_s == "192.168.10.10")
@@ -53,6 +53,8 @@ class PathInSliceManager < PathManager
       @server_dpid[1] = packet_in.dpid
       @server_port[1] = packet_in.in_port
       puts "  = Update Server1's dpid and port"
+      puts "server1 dpid = #{packet_in.dpid}(#{packet_in.dpid.class})"
+      puts "server1 in_port = #{packet_in.in_port}(#{packet_in.in_port.class})"
     elsif ipaddr == 20 || 200 < ipaddr then
       @server_dpid[2] = packet_in.dpid
       @server_port[2] = packet_in.in_port
@@ -79,11 +81,11 @@ class PathInSliceManager < PathManager
         puts "  +dest   is member? : #{each.member?(packet_in.slice_destination(@graph))}"
         each.member?(packet_in.slice_source) &&
           each.member?(packet_in.slice_destination(@graph))
-      elsif (packet_in.destination_ip_address.to_a[3] > 100 &&
+      elsif (packet_in.destination_ip_address.to_a[3] >= 100 &&
              packet_in.destination_ip_address.to_a[3] <= 200) then
          unless @server_port.has_key?(1) && @server_dpid.has_key?(1) then
-          @server_dpid[1] = 0x1 #型適当．バグる気がする
-          @server_port[1] = 1 #型適当．バグる気がする
+          @server_dpid[1] = 0xf #型適当．バグる気がする
+          @server_port[1] = BinData::Uint16be.new(:value => 16) #型適当．バグる気がする
          end
 
         puts " --dest: CONTAINER on server1 (ip: .101~.200)"
