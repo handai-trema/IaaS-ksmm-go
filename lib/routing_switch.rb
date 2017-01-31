@@ -21,7 +21,7 @@ class RoutingSwitch < Trema::Controller
 
   timer_event :flood_lldp_frames, interval: 1.sec
   #timer_event :send_flowstatsrequest, interval: 1.sec
-  timer_event :send_aggregatestatsrequest, interval: 1.sec
+  timer_event :send_aggregatestatsrequest, interval: 3.sec
 
   delegate :flood_lldp_frames, to: :@topology
   delegate :send_flowstatsrequest, to: :@topology
@@ -51,7 +51,7 @@ class RoutingSwitch < Trema::Controller
   delegate :features_reply, to: :@topology
   delegate :switch_disconnected, to: :@topology
   delegate :port_modify, to: :@topology
-  delegate :flow_stats_reply, to: :@path_manager
+  delegate :flow_stats_reply, to: :@topology
   delegate :aggregate_stats_reply, to: :@path_manager
 
   def packet_in(dpid, packet_in)
