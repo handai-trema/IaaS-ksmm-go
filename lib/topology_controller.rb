@@ -159,11 +159,11 @@ class TopologyController < Trema::Controller
     end
   end
 
-  def add_path(path, packet_in)
+  def add_path(path, packet_in)#path=Array
     @topology.maybe_add_path(path, packet_in)
   end
 
-  def del_path(path)
+  def del_path(path)#path=Path Class
     @topology.maybe_delete_path(path)
   end
 
@@ -173,6 +173,10 @@ class TopologyController < Trema::Controller
 
   def update_slice(slice)
     @topology.maybe_update_slice(slice)
+  end
+
+  def change_flag(flag)
+    @topology.change_flag(flag)
   end
 
   def send_flowstatsrequest

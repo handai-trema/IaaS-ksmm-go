@@ -25,6 +25,7 @@ class Topology
   attr_reader :paths  #added (2017.1.25) needed to read hosts from other class(vis.rb)
   attr_reader :slices  #added (2017.1.25) needed to read hosts from other class(vis.rb)
   attr_reader :containers  #added (2017.1.25) needed to read hosts from other class(vis.rb)
+  attr_reader :flag  #added (2017.1.25) needed to read hosts from other class(vis.rb)
 
   def initialize
     @observers = []
@@ -34,6 +35,7 @@ class Topology
     @paths = []
     @slices = []
     @containers = []
+    @flag
   end
 
   def add_observer(observer)
@@ -141,6 +143,11 @@ class Topology
   def maybe_update_slice(slice)
     @slices = slice
     maybe_send_handler :maybe_update_slice, slice, self
+  end
+
+  def change_flag(flag)
+    @flag = flag
+    maybe_send_handler :change_flag, flag, self
   end
 #追加ここまで
 

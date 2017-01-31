@@ -67,7 +67,7 @@ module View
         JSON.dump([ "nodes"=> nodes.values, "hosts"=> hosts.values,   
                     "containers"=> containers.values,   
                     "links"=> (links.merge(h_links)).merge(c_links).values,   
-                    "paths"=>topology.paths], io)  
+                    "paths"=>topology.paths, "flag"=>topology.flag], io)  
       end#パスにコンテナを入れる処理がまだ、スライスの処理がまだ  
     end  
     # rubocop:enable AbcSize  

@@ -52,6 +52,7 @@ class PathManager < Trema::Controller
     if @load_flag[slice_name] != prev_flag then
       #puts "@load_flag[#{slice_name}] is changed : #{prev_flag} => #{@load_flag[slice_name]}"
       update_path_by_load_change slice_name,@load_flag[slice_name]
+      maybe_send_handler :change_flag, @load_flag#可視化用
       @load_table[dpid] = 0
     end
 
