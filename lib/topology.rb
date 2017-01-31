@@ -94,6 +94,7 @@ class Topology
 #追加
   def add_container(*container)
     container_mac_address, server_mac = *container
+    return if @containers.include?(container)
     @containers << container
     puts container_mac_address.to_s + " is added in topology"
     maybe_send_handler :add_container, container_mac_address, self#Viewへおくる

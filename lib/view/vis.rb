@@ -50,8 +50,6 @@ module View
         tmp[1] = each[1]["id"] if each[1]["label"] == "00:00:00:00:00:02"  
         i += 1  
       end  
-      puts "view"
-      p server_id
       i = 0  
       c_links = topology.containers.each_with_object({}) do |each, tmp|  
 #        tmp[nodes.length+i] = { "from"=> each[2], "to"=> nodes.length+i+2 }  
@@ -83,11 +81,6 @@ module View
       mac_address = host_or_container[0]
       for container in containers do  
         result = true if container[0][0].to_s == mac_address.to_s  
-        puts "mac_address"
-        p mac_address
-        puts "container[0][0]"
-        p container[0][0]
-        puts ""
       end  
       return result  
     end  

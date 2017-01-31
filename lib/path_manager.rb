@@ -28,7 +28,7 @@ class PathManager < Trema::Controller
 
   def aggregate_stats_reply(dpid,message)
     #puts "#0x{dpid} -> #{message.packet_count}"
-    threshold = 20
+    threshold = 10
     if @load_table.has_key?(dpid) then
       @load_table[dpid] = message.packet_count - @load_table[dpid]
     else
@@ -145,7 +145,7 @@ class PathManager < Trema::Controller
       all_path[index].destroy
       created_path = Path.create new_path, packet_in
       created_path.slice = target_slice
-      maybe_send_handler :add_path, new_path#可視化用
+      maybe_send_handler :add_path, new_path, packet_in#可視化用
     end
   end
 
