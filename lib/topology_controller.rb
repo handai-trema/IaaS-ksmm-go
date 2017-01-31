@@ -5,6 +5,8 @@ require 'topology'
 class TopologyController < Trema::Controller
   timer_event :flood_lldp_frames, interval: 1.sec
 
+  delegate :flow_stats_reply, to: :@topology
+
   attr_reader :topology
 
   def initialize(&block)

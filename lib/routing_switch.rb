@@ -51,7 +51,7 @@ class RoutingSwitch < Trema::Controller
   delegate :features_reply, to: :@topology
   delegate :switch_disconnected, to: :@topology
   delegate :port_modify, to: :@topology
-  delegate :flow_stats_reply, to: :@path_manager
+  delegate :flow_stats_reply, to: :@topology
   delegate :aggregate_stats_reply, to: :@path_manager
 
   def packet_in(dpid, packet_in)

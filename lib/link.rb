@@ -49,4 +49,14 @@ class Link
     ((@dpid_a == dpid) && (@port_a == port_no)) ||
       ((@dpid_b == dpid) && (@port_b == port_no))
   end
+
+  def get_pair_switch(dpid,port_no)
+    pair = nil
+    if(@dpid_a == dpid && @port_a == port_no) then
+      pair = @dpid_b
+    elsif(@dpid_b == dpid && @port_b == port_no) then
+      pair = @dpid_a
+    end
+    pair
+  end
 end

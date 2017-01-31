@@ -24,15 +24,6 @@ class PathManager < Trema::Controller
     logger.info 'Path Manager started.'
   end
 
-  def flow_stats_reply(dpid,message)
-    #puts message.stats.length if message.stats.length != 0
-    message.stats.each do |each|
-      #puts "0x#{dpid}:#{each["actions"].format}"
-      #puts each
-      #puts each["actions"].get
-    end
-  end
-
   def aggregate_stats_reply(dpid,message)
     #puts "#0x{dpid} -> #{message.packet_count}"
     threshold = 20

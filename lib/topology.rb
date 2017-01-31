@@ -125,6 +125,27 @@ class Topology
     @graph.route(ip_source_address, ip_destination_address)
   end
 
+  #flow_stats_replyのハンドラメソッドを追加
+  def flow_stats_reply(dpid,message)
+    #puts message.stats.length if message.stats.length != 0
+    message.stats.each do |each|
+      #puts "0x#{dpid}:#{each["actions"].format}"
+      #puts each
+      actions = each["actions"].get
+      #p actions.length
+      actions.each do |action|
+        pair_switch = nil
+        #p action.port
+        @links.each do |link|
+          pair_switch = link.get_pair_switch dpid,action.port
+          break unless pair_switch.nil?
+        end
+        puts "0x#{dpid}-0x#{pair_switch}" unless pair_switch.nil?
+        #p SendOutPort.read(action)
+      end
+    end
+  end
+
   private
 
   def maybe_delete_link(port)
