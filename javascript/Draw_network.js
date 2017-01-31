@@ -272,6 +272,11 @@ function onRadioButtonChange() {
           host_s[pre_slice[0].slices[i].name] = tmp;
         }
       }
+      for (var j = 0; j < pre_data[0].nodes.length; j++){
+        if (pre_data[0].nodes[j].label == "0x6"){
+          nodes.update([{id:pre_data[0].nodes[j].id, image: './html_images/switch.png'}]);
+        }
+      }
     }
         target.innerHTML = JSON.stringify(host_s, null, 4);
   }
@@ -290,6 +295,26 @@ function onRadioButtonChange() {
           nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container_slice' + String(i+1) +'.png'}]);
         }else{
           nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container.png'}]);
+        }
+      }
+      if ( pre_slice[0].slices[i].name == "slice_51" ){
+        slice_flag = pre_data[0].flag.slice_51;
+      }else if( pre_slice[0].slices[i].name == "slice_52" ){
+        slice_flag = pre_data[0].flag.slice_52;
+      }else{
+        slice_flag = false;
+      }
+      if ( slice_flag == true ){
+        for (var j = 0; j < pre_data[0].nodes.length; j++){
+          if (pre_data[0].nodes[j].label == "0x6"){
+            nodes.update([{id:pre_data[0].nodes[j].id, image: './html_images/switch_not_available.png'}]);
+          }
+        }
+      }else{
+        for (var j = 0; j < pre_data[0].nodes.length; j++){
+          if (pre_data[0].nodes[j].label == "0x6"){
+            nodes.update([{id:pre_data[0].nodes[j].id, image: './html_images/switch.png'}]);
+          }
         }
       }
       target.innerHTML = JSON.stringify(pre_slice[0].slices[i].host, null, 4);
