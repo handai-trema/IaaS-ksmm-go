@@ -32,6 +32,7 @@ class TopologyController < Trema::Controller
   end
 
   def features_reply(dpid, features_reply)
+    #puts "features_reply(TopologyController)"
     @topology.add_switch dpid, features_reply.physical_ports.select(&:up?)
   end
 
@@ -160,8 +161,8 @@ class TopologyController < Trema::Controller
     @topology.maybe_add_path(path, packet_in)
   end
 
-  def del_path(path, packet_in)
-    @topology.maybe_delete_path(path, packet_in)
+  def del_path(path)
+    @topology.maybe_delete_path(path)
   end
 
   def add_container(container)
