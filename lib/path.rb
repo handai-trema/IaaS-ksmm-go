@@ -91,6 +91,10 @@ class Path < Trema::Controller
       ether_types.each do |ether_type|
         match = exact_match(in_port.number, ether_type)
         if match != nil then
+          puts "Path::flow_mod_add_to_each_switch"
+          puts "  out_port.dpid = #{out_port.dpid} ,out_port.number = #{out_port.number}"
+          #p "  match = #{match}"
+          #puts ""
           send_flow_mod_add(out_port.dpid,
                             match: match,
                             actions: SendOutPort.new(out_port.number))

@@ -53,8 +53,6 @@ class PathInSliceManager < PathManager
       @server_dpid[1] = packet_in.dpid
       @server_port[1] = packet_in.in_port
       puts "  = Update Server1's dpid and port"
-      puts "server1 dpid = #{packet_in.dpid}(#{packet_in.dpid.class})"
-      puts "server1 in_port = #{packet_in.in_port}(#{packet_in.in_port.class})"
     elsif ipaddr == 20 || 200 < ipaddr then
       @server_dpid[2] = packet_in.dpid
       @server_port[2] = packet_in.in_port
@@ -91,7 +89,7 @@ class PathInSliceManager < PathManager
         puts " --dest: CONTAINER on server1 (ip: .101~.200)"
         puts "  +source is member? : #{each.member?(packet_in.slice_source)}"
         puts "  +dest   is member? : #{each.member?({ dpid: @server_dpid[1],
-                                                      port_no: @server_port[1], mac: packet_in.source_mac })}"
+                                                      port_no: @server_port[1], mac: packet_in.destination_mac })}"
         each.member?(packet_in.slice_source) &&
           each.member?({ dpid: @server_dpid[1], port_no: @server_port[1], mac: packet_in.destination_mac })
       elsif (packet_in.destination_ip_address.to_a[3] > 200) then
@@ -103,7 +101,7 @@ class PathInSliceManager < PathManager
         puts " --dest: CONTAINER on server2 (ip: .201~.255)"
         puts "  +source is member? : #{each.member?(packet_in.slice_source)}"
         puts "  +dest   is member? : #{each.member?({ dpid: @server_dpid[2],
-                                                      port_no: @server_port[2], mac: packet_in.source_mac })}"
+                                                      port_no: @server_port[2], mac: packet_in.destination_mac })}"
         each.member?(packet_in.slice_source) &&
           each.member?({ dpid: @server_dpid[2], port_no: @server_port[2], mac: packet_in.destination_mac })
       end

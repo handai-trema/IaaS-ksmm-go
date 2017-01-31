@@ -207,7 +207,6 @@ class Slice
   end
 
   def member?(host_id)
-    puts host_id
     @ports[Port.new(host_id)].include? host_id[:mac]
   rescue
     false
