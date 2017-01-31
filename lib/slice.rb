@@ -5,6 +5,8 @@ require 'path_manager'
 require 'port'
 require 'slice_exceptions'
 require 'slice_extensions'
+require 'pio'#必要かわからないけどとりあえず
+require 'erb'#必要かわからないけどとりあえず
 
 # Virtual slice.
 # rubocop:disable ClassLength
@@ -111,20 +113,19 @@ class Slice
 
 
   def self.write_slice_info
-    color_list = ["red","green","yellow","blue","cyan","magenda","orange","pink"]
-    idx = 0
-    outtext = ""
-    all.each do |slice|
-      slice.ports.each do |port|
-	slice.mac_addresses(port).each do |mac|
-          outtext += sprintf("nodes.push({id: %d, label: '%s', font: {size:15, color:'%s', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});", mac.to_i, mac.to_s, color_list[idx])
-	end
-      end
-      idx += 1
-    end
-    
-    File.open("./output/slice.js","w") do |out|
-      out.write(outtext)
+#    color_list = ["red","green","yellow","blue","cyan","magenda","orange","pink"]
+#    idx = 0
+#    outtext = ""
+#    all.each do |slice|
+#      slice.ports.each do |port|
+#	slice.mac_addresses(port).each do |mac|
+#          outtext += sprintf("nodes.push({id: %d, label: '%s', font: {size:15, color:'%s', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});", mac.to_i, mac.to_s, color_list[idx])
+#	end
+#      end
+#      idx += 1
+#    end
+    open("./tmp/slice.json", "w") do |io|  
+      JSON.dump(["slices"=>all], io)
     end
   end
 
@@ -217,7 +218,13 @@ class Slice
   end
 
   def to_json(*_)
-    %({"name": "#{@name}"})
+    host = []
+    @ports.keys.each do |key|
+      @ports[key].each do |each| 
+        host << each.to_s
+      end
+    end
+    %({"name": "#{@name}", "host": #{host}})
   end
 
   def method_missing(method, *args, &block)

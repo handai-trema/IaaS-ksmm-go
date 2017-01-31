@@ -123,7 +123,7 @@ class PathManager < Trema::Controller
     maybe_send_handler :del_path, all_path[index]#可視化用
         all_path[index].destroy
         Path.create new_path, packet_in
-    maybe_send_handler :add_path, new_path#可視化用
+    maybe_send_handler :add_path, new_path, packet_in#可視化用
       else
         puts "next index!!"
         index += 1
@@ -230,8 +230,7 @@ class PathManager < Trema::Controller
 
     shortest_path =  @graph.dijkstra(src, dest)
     return unless shortest_path
-#ここで渡す前にパスにコンテナのMACをもどす（shortest_path->shortest_path_in_container
-    maybe_send_handler :add_path, shortest_path#可視化用
+    maybe_send_handler :add_path, shortest_path, packet_in#可視化用
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
 #    end

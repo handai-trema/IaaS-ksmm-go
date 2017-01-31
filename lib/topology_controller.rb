@@ -156,12 +156,12 @@ class TopologyController < Trema::Controller
     end
   end
 
-  def add_path(path)
-    @topology.maybe_add_path(path)
+  def add_path(path, packet_in)
+    @topology.maybe_add_path(path, packet_in)
   end
 
-  def del_path(path)
-    @topology.maybe_delete_path(path)
+  def del_path(path, packet_in)
+    @topology.maybe_delete_path(path, packet_in)
   end
 
   def add_container(container)

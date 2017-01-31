@@ -1,4 +1,5 @@
 var pre_data;
+var pre_slice;
 var nodes;
 var edges;
 var network;
@@ -71,6 +72,11 @@ network.setOptions(options);
   };
 
   var init = function() {
+    getJsonData('tmp/slice.json')
+    .done(function(data) {
+      console.log('取得成功', data);
+      pre_slice = data;
+    }).fail(function(jqXHR, statusText, errorThrown) {});
     getJsonData(jsonFilePath)
     .done(function(data) {
       console.log('取得成功', data);
@@ -163,7 +169,7 @@ var click = function() {
     if ( check_num == 0 ){
       return checkPath(path, hosts, node1, node2);
     }else{
-      if (($.inArray(path[0], pre_data[0].slices[check_num-1].host) < 0) || ($.inArray(path[path.length-1], pre_data[0].slices[check_num-1].host) < 0)){
+      if (($.inArray(path[0], pre_slice[0].slices[check_num-1].host) < 0) || ($.inArray(path[path.length-1], pre_slice[0].slices[check_num-1].host) < 0)){
         return false;
       }else{
         return checkPath(path, hosts, node1, node2);
@@ -225,10 +231,10 @@ var click = function() {
 };
 
 var createRadioButton = function() {
-    if (pre_data[0].slices == []) {return}
+    if (pre_slice[0].slices == []) {return}
     var str = '<input id="Radio0" name="RadioGroup1" type="radio" onchange="onRadioButtonChange();" checked /> <label for="Radio1">all</label><br/>';
-    for ( var i = 0; i < pre_data[0].slices.length; i++ ) {
-    str = str + '<input id="Radio' + String(i+1) + '" name="RadioGroup1" type="radio" onchange="onRadioButtonChange();" /> <label for="Radio1">' + pre_data[0].slices[i].name + '</label><br/>';
+    for ( var i = 0; i < pre_slice[0].slices.length; i++ ) {
+    str = str + '<input id="Radio' + String(i+1) + '" name="RadioGroup1" type="radio" onchange="onRadioButtonChange();" /> <label for="Radio1">' + pre_slice[0].slices[i].name + '</label><br/>';
     }
     document.getElementById('radiobutton').innerHTML = '<form name="form1" action="">' + str +  '</form>';
     onRadioButtonChange()
@@ -237,7 +243,7 @@ var createRadioButton = function() {
 
 function onRadioButtonChange() {
   var check = [];
-  for (var i = 0; i < pre_data[0].slices.length+1; i++){
+  for (var i = 0; i < pre_slice[0].slices.length+1; i++){
     check[i] = eval("document.form1.Radio" + String(i) + ".checked");
   }
   active_slice = check;
@@ -250,43 +256,43 @@ function onRadioButtonChange() {
   if (check[0] == true) {//all
     var host_s = {};
     var tmp = [];
-    for (var i = 0; i < pre_data[0].slices.length; i++){
+    for (var i = 0; i < pre_slice[0].slices.length; i++){
       tmp = [];
       for (var j = 0; j < pre_data[0].hosts.length; j++){
-        if ($.inArray(pre_data[0].hosts[j].label, pre_data[0].slices[i].host) >= 0){//スライスに含まれるか
+        if ($.inArray(pre_data[0].hosts[j].label, pre_slice[0].slices[i].host) >= 0){//スライスに含まれるか
             nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop_slice' + String(i+1) +'.png'}]);
           tmp.push(pre_data[0].hosts[j].label);
-          host_s[pre_data[0].slices[i].name] = tmp;
+          host_s[pre_slice[0].slices[i].name] = tmp;
         }
       }
       for (var j = 0; j < pre_data[0].containers.length; j++){
-        if ($.inArray(pre_data[0].containers[j].label, pre_data[0].slices[i].host) >= 0){//スライスに含まれるか
+        if ($.inArray(pre_data[0].containers[j].label, pre_slice[0].slices[i].host) >= 0){//スライスに含まれるか
             nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container_slice' + String(i+1) +'.png'}]);
           tmp.push(pre_data[0].containers[j].label);
-          host_s[pre_data[0].slices[i].name] = tmp;
+          host_s[pre_slice[0].slices[i].name] = tmp;
         }
       }
     }
         target.innerHTML = JSON.stringify(host_s, null, 4);
   }
-  for (var i = 0; i < pre_data[0].slices.length; i++){
+  for (var i = 0; i < pre_slice[0].slices.length; i++){
     if (check[i+1] == true) {
 //      target.innerHTML = "要素"+String(i)+"がチェックされています。<br/>";
       for (var j = 0; j < pre_data[0].hosts.length; j++){
-        if ($.inArray(pre_data[0].hosts[j].label, pre_data[0].slices[i].host) >= 0){
+        if ($.inArray(pre_data[0].hosts[j].label, pre_slice[0].slices[i].host) >= 0){
           nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop_slice' + String(i+1) +'.png'}]);
         }else{
           nodes.update([{id:pre_data[0].hosts[j].id, image: './html_images/computer_laptop.png'}]);
         }
       }
       for (var j = 0; j < pre_data[0].containers.length; j++){
-        if ($.inArray(pre_data[0].containers[j].label, pre_data[0].slices[i].host) >= 0){
+        if ($.inArray(pre_data[0].containers[j].label, pre_slice[0].slices[i].host) >= 0){
           nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container_slice' + String(i+1) +'.png'}]);
         }else{
           nodes.update([{id:pre_data[0].containers[j].id, image: './html_images/container.png'}]);
         }
       }
-      target.innerHTML = JSON.stringify(pre_data[0].slices[i].host, null, 4);
+      target.innerHTML = JSON.stringify(pre_slice[0].slices[i].host, null, 4);
     }
   }
 };

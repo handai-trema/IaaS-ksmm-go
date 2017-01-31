@@ -99,14 +99,20 @@ class Topology
     maybe_send_handler :add_container, container_mac_address, self#Viewへおくる
   end
 
-  def maybe_add_path(shortest_path)
+  def maybe_add_path(shortest_path, packet_in)
     temp = Array.new
+    unless shortest_path[0].to_s == packet_in.source_mac.to_s then
+      temp << packet_in.source_mac.to_s
+    end
     temp << shortest_path[0].to_s
     #p shortest_path
     shortest_path[1..-2].each_slice(2) do |in_port, out_port|
       temp << out_port.dpid
     end
     temp << shortest_path.last.to_s
+    unless shortest_path.last.to_s == packet_in.destination_mac.to_s then
+      temp << packet_in.destination_mac.to_s
+    end
     unless @paths.include?(temp)
       @paths << temp
       maybe_send_handler :add_path, shortest_path, self
@@ -115,11 +121,18 @@ class Topology
 
   def maybe_delete_path(delete_path)
     temp = Array.new
+    packet_in = delete_path.get_packet_in
+    unless delete_path.get_path[0].to_s == packet_in.source_mac.to_s then
+      temp << packet_in.source_mac.to_s
+    end
     temp << delete_path.get_path[0].to_s
     delete_path.get_path[1..-2].each_slice(2) do |in_port, out_port|
       temp << out_port.dpid
     end
     temp << delete_path.get_path.last.to_s
+    unless delete_path.get_path.last.to_s == packet_in.destination_mac.to_s then
+      temp << packet_in.destination_mac.to_s
+    end
     @paths.delete(temp)
     maybe_send_handler :del_path, delete_path, self
   end
