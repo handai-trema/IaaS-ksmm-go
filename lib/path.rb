@@ -86,7 +86,7 @@ class Path < Trema::Controller
   end
 
   def flow_mod_add_to_each_switch
-    path.each_slice(2) do |in_port, out_port|
+    path.reverse.each_slice(2) do |out_port, in_port|
       ether_types = [0x0800, 0x0806]
       ether_types.each do |ether_type|
         match = exact_match(in_port.number, ether_type)

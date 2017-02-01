@@ -55,6 +55,9 @@ class RoutingSwitch < Trema::Controller
   delegate :aggregate_stats_reply, to: :@path_manager
 
   def packet_in(dpid, packet_in)
+    unless packet_in.lldp? then
+      return unless(dpid == 1 || dpid == 2 || dpid == 15 || dpid == 16 || dpid == 3)
+    end
     @topology.packet_in(dpid, packet_in)
     @path_manager.packet_in(dpid, packet_in) unless packet_in.lldp?
   end

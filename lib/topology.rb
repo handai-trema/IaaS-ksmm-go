@@ -35,7 +35,7 @@ class Topology
     @paths = []
     @slices = []
     @containers = []
-    @flag
+    @flag = {"slice_51" => false , "slice_52" => false}
   end
 
   def add_observer(observer)

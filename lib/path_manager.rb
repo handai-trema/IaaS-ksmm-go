@@ -23,6 +23,8 @@ class PathManager < Trema::Controller
     @load_flag = {"slice_51" => false , "slice_52" => false}
     #maybe_create_shortest_pathでパスを生成する時の、スライスの確認用
     @path_slice_name = ""
+    @count = 1
+    @check = 1
     logger.info 'Path Manager started.'
   end
 
@@ -42,7 +44,12 @@ class PathManager < Trema::Controller
       return
     end
 
+    if @count == @check
+      @check = 1
+      @count = 0
     prev_flag = @load_flag[slice_name]
+    #puts "@load_flag[#{slice_name}] = #{@load_flag[slice_name]}"
+    #puts "@load_table[#{dpid}] = #{@load_table[dpid]}"
     #puts "@load_table[#{dpid}] = #{@load_table[dpid]}"
     if @load_table[dpid] > threshold then
       @load_flag[slice_name] = true
@@ -50,11 +57,15 @@ class PathManager < Trema::Controller
       @load_flag[slice_name] = false
     end
     if @load_flag[slice_name] != prev_flag then
+      @check = 15
       #puts "@load_flag[#{slice_name}] is changed : #{prev_flag} => #{@load_flag[slice_name]}"
       update_path_by_load_change slice_name,@load_flag[slice_name]
       maybe_send_handler :change_flag, @load_flag#可視化用
       @load_table[dpid] = 0
     end
+    end
+    @count += 1
+    #puts "@count = #{@count}, @check = #{@check}"
 
     #負荷の状態が変化したら、パスの張替え。
     #puts "--start--"
@@ -283,6 +294,7 @@ class PathManager < Trema::Controller
         @graph.dijkstra(src, dest)
     end
     return unless shortest_path
+    return if shortest_path.empty?
     maybe_send_handler :add_path, shortest_path, packet_in#可視化用
 #    if dest != packet_in.destination_mac then
 #      #shortest_path.push(packet_in.destination_mac)
