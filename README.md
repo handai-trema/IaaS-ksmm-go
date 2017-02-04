@@ -1,95 +1,41 @@
-Routing Switch
-==============
-[![Build Status](http://img.shields.io/travis/trema/routing_switch/develop.svg?style=flat)][travis]
-[![Code Climate](http://img.shields.io/codeclimate/github/trema/routing_switch.svg?style=flat)][codeclimate]
-[![Coverage Status](http://img.shields.io/codeclimate/coverage/github/trema/routing_switch.svg?style=flat)][codeclimate]
-[![Dependency Status](http://img.shields.io/gemnasium/trema/routing_switch.svg?style=flat)][gemnasium]
+How to use
+----------
 
-This is a layer 2 switch application with virtual slicing
-function. The slicing function allows us to create multiple layer 2
-domains. This is similar to MAC-based VLAN but there is no limitation
-on VLAN ID space.
+## 用意する端末(PC)
+- Tremaのコントローラを動作させるための端末(Controller)
+    - 実機スイッチのマネジメントポートと同じネットワークに所属するように、IPアドレスを設定しておく。
+- サーバ用端末(Server)
+    - Dockerコンテナを動かすための端末。Dockerをインストールしておく。
+    - IPアドレス：192.168.10.10/24
+- 管理者用端末(Admin)
+    - ユーザからのリクエストにより、サーバ用端末にDockerコンテナを作成する端末。
+    - IPアドレス：192.168.10.13/24
+- ユーザ端末(User)
+    - 管理者用端末と通信を行い、Dockerコンテナの作成を依頼する。コンテナが作成後は、コンテナとの通信が可能となる。
+    - IPアドレス：192.168.10.51/24
 
-[travis]: http://travis-ci.org/trema/routing_switch
-[codeclimate]: https://codeclimate.com/github/trema/routing_switch
-[gemnasium]: https://gemnasium.com/trema/routing_switch
-
-
-Prerequisites
--------------
-
-* Ruby 2.0.0 or higher ([RVM][rvm]).
-* [Open vSwitch][openvswitch] (`apt-get install openvswitch-switch`).
-
-[rvm]: https://rvm.io/
-[openvswitch]: https://openvswitch.org/
-
-
-Install
--------
-
-```bash
-git clone https://github.com/trema/routing_switch.git
-cd routing_switch
-bundle install --binstubs
+## デモの再現方法
+1. 実機スイッチのVSI間をケーブルで接続し、ネットワークを構築する。
+1. Tremaのコントローラを、以下のコマンドで起動させる。  
 ```
-
-
-Play
-----
-
-To run without virtual slicing, run `lib/routing_switch.rb` as
-follows:
-
-```bash
-./bin/trema run lib/routing_switch.rb -c trema.conf
+bundle exec trema run lib/routing_switch.rb -- --slicing
 ```
-
-To run with virtual slicing support, run `lib/routing_switch.rb` with
-`-- --slicing` options as follows:
-
-```bash
-./bin/trema run lib/routing_switch.rb -c trema.conf -- --slicing
+1. UserからAdminに対して、Dockerコンテナの立ち上げを依頼する。今回はpingによる通信で、コンテナ立ち上げ依頼の処理を模倣した。
 ```
-
-In another terminal, you can create virtual slices with the following
-command:
-
-```bash
-./bin/slice add foo
+ping 192.168.10.13
 ```
-
-Then add hosts to the slice with the following command:
-
-```bash
-./bin/slice add_host --mac 11:11:11:11:11:11 --port 0x1:1 --slice foo
+UserとAdminの間で通信が行えていることを確認する。
+1. AdminがServerと通信し、Dockerコンテナを作成する。pingによる通信で、Dockerコンテナの作成処理を模倣する。
 ```
-
-
-REST API
---------
-
-To start the REST API server:
-
-```bash
-./bin/rackup
+ping 192.168.10.10
 ```
-
-### Supported APIs
-
-Read [this](https://relishapp.com/trema/routing-switch/docs/rest-api) for details.
-
-Description                 | Method | URI
-----------------------------|--------|--------------------------------------------------------------
-Create a slice              | POST   | `/slices`
-Delete a slice              | DELETE | `/slices`
-List slices                 | GET    | `/slices`
-Shows a slice               | GET    | `/slices/:slice_id`
-Add a port to a slice       | POST   | `/slices/:slice_id/ports`
-Delete a port from a slice  | DELETE | `/slices/:slice_id/ports`
-List ports                  | GET    | `/slices/:slice_id/ports`
-Shows a port                | GET    | `/slices/:slice_id/ports/:port_id`
-Adds a host to a slice      | POST   | `/slices/:slice_id/ports/:port_id/mac_addresses`
-Deletes a host from a slice | DELETE | `/slices/:slice_id/ports/:port_id/mac_addresses`
-List MAC addresses          | GET    | `/slices/:slice_id/ports/:port_id/mac_addresses`
-Shows a MAC address         | GET    | `/slices/:slice_id/ports/:port_id/mac_addresses/:mac_address`
+AdminとServer間で通信が行えていることを確認する。このとき、ServerではDockerコンテナをあらかじめ立ち上げておく(SSHを用いて、Admin側からコンテナを作成してもよい)。作成したコンテナは、仮想ブリッジを用いてServerの物理NICと接続しておく。コンテナのIPアドレスは、Userと同じネットワークに所属し、101よりも大きいもの(例：192.168.10.101/24)を指定する。
+1. Userとコンテナ間の通信を確立する。お互いにpingを送りあうことでパスが形成され、通信が確立される。
+1. Network.htmlのファイルをブラウザで開くことで、可視化されたネットワークの状況を確認することができる。
+1. Controllerによって作成された端末間のパスの途中にあるリンクを削除（ケーブルを抜く）と、パスの再構築が行われる。削除されたリンクを含むパスが削除され、新しい最短路のパスが形成される。ブラウザの可視化情報を確認することで、確かめることができる。
+1. 削除されたリンクの復元を復元（抜いたケーブルを再度接続）すると、パスが再構築され、元のパスが再び張られる。これも、ブラウザの可視化情報から、確認することができる。
+1. UserからServerに対して、大量のパケットを送信する。例えば、以下のように短時間で複数のpingコマンドを打つ。
+```
+ping 192.168.10.101 -i 0.2
+```
+UserとServer間の通信量が増えると、既存のパスが張り替えられ、ボトルネックとなりうるスイッチを迂回するパスが生成される。ブラウザの可視化情報を確認すると、迂回すべきスイッチに印が付けられ、新しいパスが生成されていることがわかる。このとき、AdminとServerとの通信路は変化していないことも確認できる。
