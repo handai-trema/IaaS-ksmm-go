@@ -87,7 +87,7 @@ How to use
     ```
   1. 仮想ブリッジとNICを接続
     ```
-    sudo brctl addif enp5s0
+    sudo brctl addif br0 enp5s0
     ```
 
 ### Dockerコンテナの起動手順(デモの再現方法 5.の詳細)
