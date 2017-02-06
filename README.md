@@ -46,11 +46,12 @@ How to use
 
 ## サーバ用端末の設定内容
 ### 導入環境
-- Ubuntu 16.04 LTS
+- Ubuntu 16.04.1 LTS
 
 ### 導入が必要なもの
 - Docker
  - 今回のデモではubuntuにApacheをインストールしたイメージを事前に準備
+ - Docker version 1.12.5
 - pipework
  - <https://github.com/jpetazzo/pipework>
  - Dockerコンテナに任意のIPアドレスを割り振るために導入
@@ -67,10 +68,6 @@ How to use
     ```
     sudo ifconfig enp5s0 0.0.0.0
     ```
-  1. マシンのNICに静的なMACアドレスを指定
-    ```
-    sudo ifocnfig enp5s0 hw ether 00:00:00:00:00:01
-    ```
   1. マシンのNICをup
     ```
     sudo ifoconfig enp5s0 up
@@ -79,6 +76,10 @@ How to use
   1. DockerコンテナとマシンのNICをつなぐ仮想ブリッジbr0を追加
     ```
     sudo brctl addbr br0
+    ```
+  1. 仮想ブリッジに静的なMACアドレスを指定
+    ```
+    sudo ifocnfig br0 hw ether 00:00:00:00:00:01
     ```
   1. 仮想ブリッジにIPアドレスを割り当て
     ```
